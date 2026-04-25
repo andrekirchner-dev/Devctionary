@@ -389,6 +389,51 @@
     .section-h{font-family:var(--fd);font-size:30px;margin-bottom:6px}
     .section-sub{font-size:11px;color:var(--tdim);margin-bottom:20px}
 
+
+    /* ══════════════════════════════════════════════════════
+       COMMANDS & SHORTCUTS
+    ══════════════════════════════════════════════════════ */
+    .cmd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:20px}
+    .cmd-card{background:var(--panel);border:1px solid var(--border);padding:0;transition:border-color .15s,transform .15s;cursor:default;position:relative}
+    .cmd-card:hover{border-color:var(--g);transform:translateY(-1px)}
+    .cmd-head{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border);background:rgba(0,255,65,.04)}
+    .cmd-prompt{color:var(--g);font-family:var(--fb);font-size:13px;padding:10px 6px 10px 14px;flex-shrink:0;user-select:none}
+    .cmd-code{font-family:var(--fb);font-size:13px;color:var(--text);padding:10px 0;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;letter-spacing:.3px}
+    .cmd-copy{background:transparent;border:none;cursor:pointer;color:var(--tdim);padding:10px 12px;font-size:11px;font-family:var(--fb);transition:color .1s;flex-shrink:0;display:flex;align-items:center;gap:4px}
+    .cmd-copy:hover{color:var(--g)}
+    .cmd-copy svg{width:12px;height:12px;stroke:currentColor;fill:none}
+    .cmd-body{padding:12px 14px}
+    .cmd-desc{font-size:13px;color:var(--text);line-height:1.55;margin-bottom:8px}
+    .cmd-ex{font-family:var(--fb);font-size:11px;color:var(--tdim);background:rgba(0,0,0,.3);padding:5px 10px;margin-bottom:10px;border-left:2px solid var(--border);white-space:pre-wrap;word-break:break-all}
+    .cmd-ex-label{font-size:9px;color:var(--tdim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px}
+    .cmd-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .cmd-os{font-size:9px;padding:2px 7px;border:1px solid var(--border);color:var(--tdim);text-transform:uppercase;letter-spacing:1px}
+    .cmd-os.os-mac{border-color:rgba(0,200,255,.3);color:rgba(0,200,255,.8)}
+    .cmd-os.os-linux{border-color:rgba(255,170,0,.3);color:rgba(255,170,0,.8)}
+    .cmd-os.os-win{border-color:rgba(100,150,255,.3);color:rgba(100,150,255,.8)}
+    .cmd-os.os-cross{border-color:rgba(0,255,65,.3);color:rgba(0,255,65,.7)}
+    .cmd-actions{position:absolute;top:8px;right:44px;display:none;gap:4px}
+    .cmd-card:hover .cmd-actions{display:flex}
+    .cmd-act-btn{background:transparent;border:1px solid var(--border);color:var(--tdim);font-size:9px;padding:2px 7px;cursor:pointer;font-family:var(--fb);letter-spacing:1px;text-transform:uppercase;transition:all .1s}
+    .cmd-act-btn:hover{border-color:var(--c);color:var(--c)}
+    .cmd-act-btn.del:hover{border-color:var(--red);color:var(--red)}
+    /* CMD filters */
+    .cmd-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
+    .cmd-search-row{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+    .cmd-search-row .s-wrap{flex:1;min-width:220px}
+    .os-filter{display:flex;gap:6px;flex-wrap:wrap}
+    .os-pill{font-size:10px;padding:3px 10px;border:1px solid var(--border);background:transparent;color:var(--tdim);cursor:pointer;font-family:var(--fb);letter-spacing:.5px;transition:all .12s}
+    .os-pill.active,.os-pill:hover{border-color:var(--g);color:var(--g)}
+    /* CMD add form */
+    .cmd-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:600px){.cmd-form-grid{grid-template-columns:1fr}}
+    .cmd-full{grid-column:1/-1}
+    /* CMD empty state */
+    .cmd-empty{text-align:center;padding:80px 20px;color:var(--tdim)}
+    .cmd-empty .ce-icon{font-size:48px;margin-bottom:12px;opacity:.3}
+    .cmd-empty .ce-title{font-family:var(--fd);font-size:28px;color:var(--text);margin-bottom:6px}
+    .cmd-empty .ce-sub{font-size:12px}
+
   </style>
 </head>
 <body>
@@ -1231,6 +1276,246 @@ function soClick(tag) {
   toast(`"${tag}" copied to clipboard.`);
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   ⌨️  COMMANDS & SHORTCUTS
+   ═══════════════════════════════════════════════════════════════════ */
+
+// State
+let _cmds = [];
+let _cmdCat = '';
+let _cmdOS  = '';
+let _cmdSearch = '';
+let _cmdById = new Map();
+
+// ── Real-time listener ────────────────────────────────────────────────
+function initCmds() {
+  db.collection('commands').orderBy('addedAt', 'desc').onSnapshot(snap => {
+    _cmds = [];
+    _cmdById = new Map();
+    snap.forEach(d => {
+      const c = { id: d.id, ...d.data() };
+      _cmds.push(c);
+      _cmdById.set(d.id, c);
+    });
+    renderCmds();
+  }, e => console.error('Commands listener:', e));
+}
+
+// ── Render grid ───────────────────────────────────────────────────────
+function renderCmds() {
+  const q = _cmdSearch.toLowerCase();
+  const shown = _cmds.filter(c => {
+    const matchCat = !_cmdCat || c.category === _cmdCat;
+    const matchOS  = !_cmdOS  || c.os === _cmdOS || c.os === 'Cross-platform';
+    const matchQ   = !q || c.command.toLowerCase().includes(q)
+                       || (c.description||'').toLowerCase().includes(q)
+                       || (c.tags||[]).some(t => t.toLowerCase().includes(q));
+    return matchCat && matchOS && matchQ;
+  });
+
+  const count = document.getElementById('cmd-count');
+  if (count) count.textContent = `${shown.length} of ${_cmds.length} command${_cmds.length!==1?'s':''}`;
+
+  const grid = document.getElementById('cmd-grid');
+  if (!grid) return;
+
+  if (!shown.length) {
+    grid.innerHTML = `<div class="cmd-empty" style="grid-column:1/-1">
+      <div class="ce-icon">⌨</div>
+      <div class="ce-title">${_cmds.length ? 'NO MATCH' : 'NO COMMANDS YET'}</div>
+      <div class="ce-sub">${_cmds.length ? 'Try a different filter or search.' : 'Be the first to add a command!'}</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = shown.map(c => cmdCard(c)).join('');
+}
+
+function cmdCard(c) {
+  const osClass = { macOS:'os-mac', Linux:'os-linux', Windows:'os-win', 'Cross-platform':'os-cross' }[c.os] || 'os-cross';
+  const prompt  = c.category === 'Shortcuts' ? '⌨' : '$';
+  const tags    = (c.tags||[]).map(t => `<span class="tag">#${esc(t)}</span>`).join('');
+  const adminBtns = S.isAdmin ? `
+    <div class="cmd-actions">
+      <button class="cmd-act-btn" onclick="openEditCmd('${c.id}')">EDIT</button>
+      <button class="cmd-act-btn del" onclick="deleteCmd('${c.id}','${esc(c.command).replace(/'/g,"\\'")}')">DEL</button>
+    </div>` : '';
+
+  return `
+  <div class="cmd-card" id="cc-${c.id}">
+    ${adminBtns}
+    <div class="cmd-head">
+      <span class="cmd-prompt">${prompt}</span>
+      <span class="cmd-code" title="${esc(c.command)}">${esc(c.command)}</span>
+      <button class="cmd-copy" onclick="copyCmd('${c.id}')" title="Copy command">
+        <svg viewBox="0 0 24 24" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span id="cc-copy-${c.id}">COPY</span>
+      </button>
+    </div>
+    <div class="cmd-body">
+      <div class="cmd-desc">${esc(c.description)}</div>
+      ${c.example ? `<div class="cmd-ex-label">example</div><div class="cmd-ex">${esc(c.example)}</div>` : ''}
+      <div class="cmd-meta">
+        <span class="c-cat">${esc(c.category)}</span>
+        <span class="cmd-os ${osClass}">${esc(c.os||'Cross-platform')}</span>
+        ${tags}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Copy to clipboard ─────────────────────────────────────────────────
+function copyCmd(id) {
+  const c = _cmdById.get(id);
+  if (!c) return;
+  navigator.clipboard.writeText(c.command).catch(() => {});
+  const el = document.getElementById('cc-copy-' + id);
+  if (el) { el.textContent = 'COPIED!'; setTimeout(() => { el.textContent = 'COPY'; }, 1500); }
+}
+
+// ── Filters ───────────────────────────────────────────────────────────
+function setCmdCat(btn, cat) {
+  _cmdCat = cat;
+  document.querySelectorAll('#cmd-cats .pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCmds();
+}
+
+function setOSFilter(btn, os) {
+  _cmdOS = os;
+  document.querySelectorAll('#os-filter .os-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCmds();
+}
+
+function filterCmds() {
+  _cmdSearch = document.getElementById('cmd-search')?.value || '';
+  renderCmds();
+}
+
+// ── Auth gate on add-cmd view ─────────────────────────────────────────
+function updateCmdAuthGate() {
+  const gate = document.getElementById('cmd-auth-gate');
+  const form = document.getElementById('cmd-form-wrap');
+  if (!gate || !form) return;
+  if (S.user) { gate.classList.add('hidden'); form.classList.remove('hidden'); }
+  else         { gate.classList.remove('hidden'); form.classList.add('hidden'); }
+}
+
+// ── Submit new command ────────────────────────────────────────────────
+async function submitCmd() {
+  if (!S.user) { sv('v-add-cmd'); return toast('Login required.', 'err'); }
+  const command  = document.getElementById('ca-cmd')?.value.trim();
+  const desc     = document.getElementById('ca-desc')?.value.trim();
+  const example  = document.getElementById('ca-ex')?.value.trim() || '';
+  const category = document.getElementById('ca-cat')?.value;
+  const os       = document.getElementById('ca-os')?.value || 'Cross-platform';
+  const rawTags  = document.getElementById('ca-tags')?.value || '';
+  const tags     = rawTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+
+  if (!command)           return toast('Command / shortcut is required.', 'warn');
+  if (!desc || desc.length < 10) return toast('Description must be at least 10 chars.', 'warn');
+  if (!category)          return toast('Please select a category.', 'warn');
+
+  const btn = document.getElementById('ca-btn');
+  if (btn) btn.textContent = '[ SUBMITTING... ]';
+
+  try {
+    await db.collection('commands').add({
+      command, description: desc, example, category, os, tags,
+      addedBy: S.user.uid, addedByEmail: S.user.email,
+      addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: null, updatedBy: null,
+    });
+    toast(`Command "${command}" added!`);
+    clearCmdForm();
+    sv('v-cmd');
+  } catch (e) {
+    toast('Failed: ' + e.message, 'err');
+    console.error(e);
+  } finally {
+    if (btn) btn.textContent = '[ SUBMIT COMMAND ]';
+  }
+}
+
+function clearCmdForm() {
+  ['ca-cmd','ca-desc','ca-ex','ca-tags'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const cat = document.getElementById('ca-cat');
+  if (cat) cat.value = '';
+  const os = document.getElementById('ca-os');
+  if (os) os.value = 'Cross-platform';
+}
+
+// ── Delete command (admin) ────────────────────────────────────────────
+async function deleteCmd(id, name) {
+  if (!S.isAdmin) return toast('Admin required.', 'err');
+  if (!confirm(`Delete command "${name}"?`)) return;
+  try {
+    await db.collection('commands').doc(id).delete();
+    toast(`"${name}" deleted.`);
+  } catch (e) { toast('Delete failed: ' + e.message, 'err'); }
+}
+
+// ── Edit command (admin) — reuse add-cmd form ─────────────────────────
+let _editCmdId = null;
+function openEditCmd(id) {
+  if (!S.isAdmin) return;
+  const c = _cmdById.get(id);
+  if (!c) return;
+  _editCmdId = id;
+  document.getElementById('ca-cmd').value  = c.command || '';
+  document.getElementById('ca-desc').value = c.description || '';
+  document.getElementById('ca-ex').value   = c.example || '';
+  document.getElementById('ca-cat').value  = c.category || '';
+  document.getElementById('ca-os').value   = c.os || 'Cross-platform';
+  document.getElementById('ca-tags').value = (c.tags||[]).join(', ');
+  const btn = document.getElementById('ca-btn');
+  if (btn) btn.textContent = '[ UPDATE COMMAND ]';
+  sv('v-add-cmd');
+}
+
+// Patch submitCmd to handle edits
+const _origSubmitCmd = submitCmd;
+async function submitCmd() {
+  if (_editCmdId) {
+    // Update mode
+    if (!S.isAdmin) return toast('Admin required.', 'err');
+    const command  = document.getElementById('ca-cmd')?.value.trim();
+    const desc     = document.getElementById('ca-desc')?.value.trim();
+    const example  = document.getElementById('ca-ex')?.value.trim() || '';
+    const category = document.getElementById('ca-cat')?.value;
+    const os       = document.getElementById('ca-os')?.value || 'Cross-platform';
+    const rawTags  = document.getElementById('ca-tags')?.value || '';
+    const tags     = rawTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+    if (!command || !desc || desc.length < 10 || !category)
+      return toast('Fill all required fields.', 'warn');
+    const btn = document.getElementById('ca-btn');
+    if (btn) btn.textContent = '[ UPDATING... ]';
+    try {
+      await db.collection('commands').doc(_editCmdId).update({
+        command, description: desc, example, category, os, tags,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy: S.user.email,
+      });
+      toast(`Command updated.`);
+      _editCmdId = null;
+      clearCmdForm();
+      if (btn) btn.textContent = '[ SUBMIT COMMAND ]';
+      sv('v-cmd');
+    } catch (e) {
+      toast('Update failed: ' + e.message, 'err');
+      if (btn) btn.textContent = '[ UPDATE COMMAND ]';
+    }
+    return;
+  }
+  // Create mode — call original logic
+  await _origSubmitCmd();
+}
+
 (async function init() {
   initRain();
   clock();
@@ -1241,5 +1526,136 @@ function soClick(tag) {
   initFB();
 })();
 </script>
+
+  <!-- ╔══════════════════════════════════════════╗ -->
+  <!-- ║           V-CMD: COMMANDS TAB            ║ -->
+  <!-- ╚══════════════════════════════════════════╝ -->
+  <main id="v-cmd" class="hidden">
+    <div class="view-hdr">
+      <div>
+        <div class="view-title" style="color:var(--g)">
+          <span style="opacity:.5">$</span> COMMANDS
+        </div>
+        <div class="view-sub">Terminal commands, Git spells, keyboard shortcuts &amp; Docker recipes</div>
+      </div>
+      <button class="btn btn-c" onclick="sv('v-add-cmd')"><span>[ + ADD COMMAND ]</span></button>
+    </div>
+
+    <!-- Search + OS filter -->
+    <div class="cmd-search-row">
+      <div class="s-wrap">
+        <span class="s-icon">⌕</span>
+        <input id="cmd-search" class="s-input" type="text" placeholder="search commands..."
+               oninput="filterCmds()">
+      </div>
+      <div class="os-filter" id="os-filter">
+        <button class="os-pill active" data-os="" onclick="setOSFilter(this,'')">ALL OS</button>
+        <button class="os-pill" data-os="macOS" onclick="setOSFilter(this,'macOS')">macOS</button>
+        <button class="os-pill" data-os="Linux" onclick="setOSFilter(this,'Linux')">Linux</button>
+        <button class="os-pill" data-os="Windows" onclick="setOSFilter(this,'Windows')">Windows</button>
+        <button class="os-pill" data-os="Cross-platform" onclick="setOSFilter(this,'Cross-platform')">Cross</button>
+      </div>
+    </div>
+
+    <!-- Category pills -->
+    <div class="cmd-filters" id="cmd-cats">
+      <button class="pill active" data-cat="" onclick="setCmdCat(this,'')">ALL</button>
+      <button class="pill" data-cat="Shell" onclick="setCmdCat(this,'Shell')">Shell</button>
+      <button class="pill" data-cat="Git" onclick="setCmdCat(this,'Git')">Git</button>
+      <button class="pill" data-cat="Shortcuts" onclick="setCmdCat(this,'Shortcuts')">Shortcuts</button>
+      <button class="pill" data-cat="Docker" onclick="setCmdCat(this,'Docker')">Docker</button>
+      <button class="pill" data-cat="npm / yarn" onclick="setCmdCat(this,'npm / yarn')">npm / yarn</button>
+      <button class="pill" data-cat="Vim" onclick="setCmdCat(this,'Vim')">Vim</button>
+      <button class="pill" data-cat="Other" onclick="setCmdCat(this,'Other')">Other</button>
+    </div>
+
+    <div id="cmd-count" style="font-size:10px;color:var(--tdim);margin:10px 0 0"></div>
+    <div class="cmd-grid" id="cmd-grid"></div>
+  </main>
+
+  <!-- ╔══════════════════════════════════════════╗ -->
+  <!-- ║         V-ADD-CMD: ADD COMMAND           ║ -->
+  <!-- ╚══════════════════════════════════════════╝ -->
+  <main id="v-add-cmd" class="hidden">
+    <div class="view-hdr">
+      <div>
+        <div class="view-title">+ ADD COMMAND</div>
+        <div class="view-sub">Share a command, shortcut or snippet with the community</div>
+      </div>
+      <button class="btn" onclick="sv('v-cmd')"><span>[ ← BACK ]</span></button>
+    </div>
+
+    <!-- Auth gate -->
+    <div id="cmd-auth-gate" class="hidden" style="text-align:center;padding:60px 20px">
+      <div style="font-family:var(--fd);font-size:32px;margin-bottom:8px;color:var(--g)">ACCESS DENIED</div>
+      <div style="font-size:12px;color:var(--tdim);margin-bottom:24px">You must be logged in to add commands.</div>
+      <button class="btn btn-c" onclick="login()"><span>[ LOGIN WITH GOOGLE ]</span></button>
+    </div>
+
+    <!-- Form -->
+    <div id="cmd-form-wrap">
+      <div class="cmd-form-grid">
+        <div class="cmd-full">
+          <label class="f-label">COMMAND / SHORTCUT *</label>
+          <div class="ac-wrap">
+            <input id="ca-cmd" class="f-input" type="text" maxlength="200"
+                   placeholder="e.g.  git log --oneline --graph  or  Cmd+Shift+P">
+          </div>
+          <div class="f-hint">The exact command or key combination</div>
+        </div>
+
+        <div class="cmd-full">
+          <label class="f-label">DESCRIPTION *</label>
+          <textarea id="ca-desc" class="f-input f-ta" rows="3" maxlength="600"
+                    placeholder="What does this command do? Be concise and clear."></textarea>
+        </div>
+
+        <div class="cmd-full">
+          <label class="f-label">EXAMPLE <span style="color:var(--tdim)">(optional)</span></label>
+          <input id="ca-ex" class="f-input" type="text" maxlength="300"
+                 placeholder="e.g.  git log --oneline --graph --all --decorate">
+          <div class="f-hint">A practical usage example or variation</div>
+        </div>
+
+        <div>
+          <label class="f-label">CATEGORY *</label>
+          <select id="ca-cat" class="f-input f-select">
+            <option value="">— select —</option>
+            <option>Shell</option>
+            <option>Git</option>
+            <option>Shortcuts</option>
+            <option>Docker</option>
+            <option>npm / yarn</option>
+            <option>Vim</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="f-label">OPERATING SYSTEM</label>
+          <select id="ca-os" class="f-input f-select">
+            <option value="Cross-platform">Cross-platform</option>
+            <option value="macOS">macOS</option>
+            <option value="Linux">Linux</option>
+            <option value="Windows">Windows</option>
+          </select>
+        </div>
+
+        <div class="cmd-full">
+          <label class="f-label">TAGS <span style="color:var(--tdim)">(comma separated)</span></label>
+          <div class="ac-wrap">
+            <input id="ca-tags" class="f-input" type="text"
+                   placeholder="e.g. git, history, log, graph">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-c" onclick="submitCmd()"><span id="ca-btn">[ SUBMIT COMMAND ]</span></button>
+        <button class="btn" onclick="clearCmdForm()"><span>[ CLEAR ]</span></button>
+      </div>
+    </div>
+  </main>
+
 </body>
 </html>

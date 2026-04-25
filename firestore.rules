@@ -62,6 +62,27 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+
+    // ── COMMANDS ──────────────────────────────────────────────────────
+    match /commands/{cmdId} {
+      // Anyone can read (public commands dictionary)
+      allow read: if true;
+
+      // Any authenticated user can add a command
+      allow create: if isAuth()
+        && request.resource.data.keys().hasAll(['command','description','category','addedBy','addedByEmail','addedAt'])
+        && request.resource.data.command     is string
+        && request.resource.data.command.size() > 0
+        && request.resource.data.command.size() <= 200
+        && request.resource.data.description is string
+        && request.resource.data.description.size() >= 10
+        && request.resource.data.addedBy == request.auth.uid;
+
+      // Only admins can edit or delete
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     // ── DENY ALL OTHER PATHS ────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
