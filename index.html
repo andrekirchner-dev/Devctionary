@@ -679,12 +679,9 @@
     }
 
     @media (max-width: 768px) {
-      /* Hide original login/user controls in nav on mobile
-         (they'll show via the FAB instead) */
-      #login-btn   { display: none !important; }
-      #user-info   { display: none !important; }
-      .user-area   { display: none !important; }
-      #auth-area   { display: none !important; }
+      /* Hide original login/user in header on mobile — FAB handles it */
+      #auth-btn    { display: none !important; }
+      #u-chip      { display: none !important; }
 
       /* Show FAB on mobile */
       #mobile-auth-fab { display: flex !important; }
@@ -1033,7 +1030,7 @@ const S = {
   search:  '',
   active:  null,   // term open in modal
 };
-const try { byId.clear(); } catch(_e) { byId = new Map(); } // id → term object
+let byId = new Map() // id → term object
 
 /* ═══════════════════════════════════════════════════════════════════
    BOOT ANIMATION
@@ -1094,6 +1091,7 @@ function initFB() {
     db   = firebase.firestore();
     auth = firebase.auth();
     auth.onAuthStateChanged(async u => {
+    updateMobileFAB(u);
       S.user    = u;
       S.isAdmin = u ? await chkAdmin(u.uid) : false;
       renderAuth();
@@ -2087,13 +2085,13 @@ function updateMobileFAB(user) {
   const mobName   = document.getElementById('mob-user-name');
   if (!loginBtn) return;
   if (user) {
-    loginBtn.style.display = 'none';
-    userWrap.style.display = 'flex';
-    if (mobAvatar && user.photoURL) mobAvatar.src = user.photoURL;
-    if (mobName)   mobName.textContent = user.displayName || user.email || '';
+    loginBtn.style.display  = 'none';
+    userWrap.style.display  = 'flex';
+    if (mobAvatar && user.photoURL)    mobAvatar.src         = user.photoURL;
+    if (mobName   && user.displayName) mobName.textContent   = user.displayName;
   } else {
-    loginBtn.style.display = 'flex';
-    userWrap.style.display = 'none';
+    loginBtn.style.display  = 'flex';
+    userWrap.style.display  = 'none';
   }
 }
 
@@ -2242,7 +2240,7 @@ function updateMobileFAB(user) {
   <!-- Mobile Auth FAB (always visible on mobile) -->
   <div id="mobile-auth-fab">
     <!-- Logged out state -->
-    <button id="mob-login-btn" class="mob-fab-btn" onclick="login()" style="display:none">
+    <button id="mob-login-btn" class="mob-fab-btn" onclick="doAuth()" style="display:none">
       ▶ LOGIN
     </button>
     <!-- Logged in state -->
