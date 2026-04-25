@@ -499,6 +499,9 @@
       z-index: 202 !important;
     }
 
+    /* Nav row: safe zone ao redor do + ADD TERM */
+    .h-nav { padding-top: 10px !important; padding-bottom: 10px !important; }
+
     /* + ADD TERM: centralizado na segunda linha */
     .h-nav .nb:not(:first-child) {
       font-size: 10px !important;
@@ -531,6 +534,14 @@
       overflow: hidden !important;
       text-overflow: ellipsis !important;
       white-space: nowrap !important;
+    }
+
+
+    /* Empurra a linha $ devctionary para baixo */
+    .hero, .tagline, .cmd, .cmd-line, main > p:first-child,
+    main > .terminal:first-child, main > pre:first-child,
+    main > div:first-child > p:first-child {
+      margin-top: 18px !important;
     }
 
     /* Grid coluna única */
