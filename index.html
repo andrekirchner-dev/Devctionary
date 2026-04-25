@@ -948,7 +948,7 @@ async function _loadPage(reset) {
   if (reset) { _cur = null; _done = false; S.terms = []; byId.clear(); }
   try {
     let q = db.collection('terms').orderBy('addedAt','desc').limit(_PS);
-    if (S.filter) q = q.where('category','==',S.filter);
+    if (S.filter && S.filter !== 'all') q = q.where('category','==',S.filter);
     if (_cur)    q = q.startAfter(_cur);
     const snap = await q.get();
     snap.forEach(d => {
