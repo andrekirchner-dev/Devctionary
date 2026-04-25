@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DEVCTIONARY // Developer & VibeCoder Dictionary</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMDBlNjRkIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMDA4MDFhIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PGVsbGlwc2UgY3g9IjMyIiBjeT0iNTYiIHJ4PSIyMiIgcnk9IjQiIGZpbGw9InJnYmEoMCwwLDAsMC4yKSIvPjxyZWN0IHg9IjgiIHk9IjEwIiB3aWR0aD0iOSIgaGVpZ2h0PSI0NCIgcng9IjIiIGZpbGw9IiMwMDVjMTIiLz48cmVjdCB4PSIxNCIgeT0iOCIgd2lkdGg9IjM4IiBoZWlnaHQ9IjQ2IiByeD0iMyIgZmlsbD0idXJsKCNnKSIvPjxyZWN0IHg9IjQ5IiB5PSIxMCIgd2lkdGg9IjMiIGhlaWdodD0iNDIiIHJ4PSIxIiBmaWxsPSIjZThlZGU5Ii8+PHJlY3QgeD0iOCIgeT0iMTAiIHdpZHRoPSIzIiBoZWlnaHQ9IjQ0IiByeD0iMSIgZmlsbD0iIzAwN2ExYSIvPjxwb2x5Z29uIHBvaW50cz0iNDQsNTIgNTAsNTIgNTAsNjIgNDcsNTggNDQsNjIiIGZpbGw9IiMxYTFhMmUiLz48dGV4dCB4PSIzMyIgeT0iMzciIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxBcmlhbCIgZm9udC1zaXplPSIxNyIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0iIzAwM2QwZCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QS1aPC90ZXh0Pjwvc3ZnPg==">
   <meta name="theme-color" content="#00ff41">
@@ -434,303 +434,6 @@
     .cmd-empty .ce-title{font-family:var(--fd);font-size:28px;color:var(--text);margin-bottom:6px}
     .cmd-empty .ce-sub{font-size:12px}
 
-
-    /* ── PERFORMANCE / PAGINATION ── */
-    .load-sentinel{height:60px;display:flex;align-items:center;justify-content:center;grid-column:1/-1}
-    .load-spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite;margin-right:10px}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .load-end{font-size:10px;color:var(--tdim);letter-spacing:2px;text-transform:uppercase;padding:20px;text-align:center;grid-column:1/-1}
-    .term-count{font-size:10px;color:var(--tdim);margin-bottom:14px;letter-spacing:1px}
-    .skeleton-card{background:var(--panel);border:1px solid var(--border);min-height:140px;position:relative;overflow:hidden}
-    .skeleton-card::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(0,255,65,.04) 50%,transparent 100%);animation:shimmer 1.4s infinite}
-    @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-    .search-loading{opacity:.5;pointer-events:none}
-
-
-    /* ═══════════════════════════════════════════════════════════════
-       MOBILE & RESPONSIVE — Devctionary
-       Breakpoints: 480px (phone), 768px (tablet)
-    ═══════════════════════════════════════════════════════════════ */
-
-    /* ── Horizontal-scroll filter pills (all sizes) ──────────────── */
-    .pills {
-      display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      gap: 6px;
-      padding-bottom: 4px;
-    }
-    .pills::-webkit-scrollbar { display: none; }
-    .pill { flex-shrink: 0; }
-
-    /* ── Tablet (≤768px) ─────────────────────────────────────────── */
-    @media (max-width: 768px) {
-
-      /* Matrix rain: disable on mobile for performance */
-      #rain { display: none !important; }
-      body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background:
-          radial-gradient(ellipse at 20% 50%, rgba(0,255,65,.04) 0%, transparent 60%),
-          radial-gradient(ellipse at 80% 20%, rgba(0,255,255,.03) 0%, transparent 50%);
-        pointer-events: none;
-        z-index: 0;
-      }
-
-      /* Boot sequence: shorter on mobile */
-      #boot { max-height: 80px; overflow: hidden; font-size: 10px; }
-
-      /* ── HEADER ─────────────────────────────────────────────────── */
-      header {
-        padding: 12px 16px 10px;
-        position: sticky;
-        top: 0;
-        z-index: 200;
-        background: rgba(2,5,2,.97);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid var(--border);
-      }
-      .site-title { font-size: clamp(24px, 6vw, 40px) !important; letter-spacing: 2px; }
-      .site-sub   { font-size: 9px !important; display: none; }
-
-      /* ── NAV ────────────────────────────────────────────────────── */
-      nav {
-        display: flex;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        gap: 6px;
-        padding: 8px 16px;
-        border-bottom: 1px solid var(--border);
-        background: rgba(2,5,2,.95);
-        position: sticky;
-        top: 56px;
-        z-index: 190;
-      }
-      nav::-webkit-scrollbar { display: none; }
-      .nav-btn, nav button {
-        flex-shrink: 0;
-        font-size: 9px !important;
-        padding: 6px 12px !important;
-        letter-spacing: 1.5px;
-        white-space: nowrap;
-        min-height: 32px;
-      }
-
-      /* ── MAIN CONTENT ───────────────────────────────────────────── */
-      main { padding: 14px 14px 80px !important; }
-
-      /* ── VIEW HEADER ────────────────────────────────────────────── */
-      .view-hdr {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 10px !important;
-        margin-bottom: 16px !important;
-      }
-      .view-title { font-size: clamp(22px, 7vw, 40px) !important; }
-      .view-sub   { font-size: 10px !important; }
-      .view-hdr > button,
-      .view-hdr .btn { width: 100%; justify-content: center; }
-
-      /* ── SEARCH ROW ─────────────────────────────────────────────── */
-      .s-wrap { width: 100% !important; }
-      .s-input {
-        font-size: 13px !important;
-        padding: 10px 10px 10px 34px !important;
-        height: 42px;
-      }
-      .s-icon { left: 10px !important; }
-
-      /* ── GRID: 1 column on phone ────────────────────────────────── */
-      .grid {
-        grid-template-columns: 1fr !important;
-        gap: 10px !important;
-      }
-
-      /* ── CARDS ──────────────────────────────────────────────────── */
-      .card {
-        padding: 14px !important;
-        /* Disable hover transforms on touch */
-        transform: none !important;
-      }
-      .card:active { opacity: .85; }
-      .c-name  { font-size: clamp(20px, 5vw, 28px) !important; }
-      .c-def   { font-size: 12px !important; -webkit-line-clamp: 3 !important; }
-
-      /* ── MODAL → bottom sheet ────────────────────────────────────── */
-      .overlay {
-        align-items: flex-end !important;
-        padding: 0 !important;
-      }
-      .modal-box {
-        width: 100% !important;
-        max-width: 100% !important;
-        max-height: 88vh !important;
-        border-radius: 16px 16px 0 0 !important;
-        border-left: none !important;
-        border-right: none !important;
-        border-bottom: none !important;
-        overflow-y: auto;
-        animation: slideUp .25s ease !important;
-      }
-      @keyframes slideUp {
-        from { transform: translateY(100%); opacity: 0; }
-        to   { transform: translateY(0);   opacity: 1; }
-      }
-      /* Drag handle */
-      .modal-box::before {
-        content: '';
-        display: block;
-        width: 40px;
-        height: 4px;
-        background: var(--border);
-        border-radius: 2px;
-        margin: 10px auto 0;
-      }
-      .modal-head { padding: 10px 16px 14px !important; }
-      .modal-term { font-size: clamp(22px, 6vw, 36px) !important; }
-      .modal-body { padding: 0 16px 24px !important; }
-      .modal-def  { font-size: 13px !important; }
-      .modal-close {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 16px !important;
-      }
-
-      /* ── FORMS ──────────────────────────────────────────────────── */
-      .form-grid { grid-template-columns: 1fr !important; }
-      .f-input   { font-size: 14px !important; padding: 10px 12px !important; }
-      .f-label   { font-size: 9px !important; }
-
-      /* ── STATS / COUNTS ─────────────────────────────────────────── */
-      .stats-row { flex-direction: column !important; gap: 8px !important; }
-      .stat-box  { width: 100% !important; }
-
-      /* ── ADMIN ──────────────────────────────────────────────────── */
-      .admin-stats, .admin-grid { grid-template-columns: 1fr !important; }
-      .imp-bar { flex-direction: column !important; }
-      .cmd-form-grid { grid-template-columns: 1fr !important; }
-
-      /* ── TERM COUNT ─────────────────────────────────────────────── */
-      .term-count { font-size: 9px !important; }
-
-      /* ── BUTTONS ────────────────────────────────────────────────── */
-      .btn { min-height: 40px; }
-
-      /* ── LOAD SENTINEL ──────────────────────────────────────────── */
-      .load-end { padding-bottom: 40px !important; }
-    }
-
-    /* ── Phone only (≤480px) ─────────────────────────────────────── */
-    @media (max-width: 480px) {
-      header { padding: 10px 12px 8px; }
-      main   { padding: 12px 12px 80px !important; }
-      nav    { top: 50px; padding: 6px 12px; }
-
-      .site-title { font-size: 28px !important; }
-
-      .card   { padding: 12px !important; }
-      .c-name { font-size: 18px !important; }
-      .c-cat  { font-size: 7px !important; }
-
-      .modal-box   { max-height: 92vh !important; }
-      .modal-term  { font-size: 20px !important; }
-      .modal-def   { font-size: 12px !important; }
-
-      /* Stack overflow tags grid */
-      .so-grid { gap: 4px !important; }
-      .so-tag  { font-size: 9px !important; padding: 2px 7px !important; }
-
-      /* CMD cards */
-      .cmd-grid { grid-template-columns: 1fr !important; }
-      .cmd-code { font-size: 11px !important; }
-    }
-
-    /* ── Tablet 2-column (481px–768px) ──────────────────────────── */
-    @media (min-width: 481px) and (max-width: 768px) {
-      .grid { grid-template-columns: repeat(2, 1fr) !important; }
-    }
-
-    /* ── Touch: remove hover states ─────────────────────────────── */
-    @media (hover: none) and (pointer: coarse) {
-      .card:hover    { transform: none; border-color: var(--border); }
-      .btn:hover span { color: inherit; }
-    }
-
-
-    /* ═══════════════════════════════════════════════════════════════
-       MOBILE LOGIN — Always visible
-    ═══════════════════════════════════════════════════════════════ */
-
-    /* Mobile FAB: floating login button */
-    #mobile-auth-fab {
-      display: none;
-      position: fixed;
-      bottom: 20px;
-      right: 16px;
-      z-index: 1000;
-      align-items: center;
-      gap: 8px;
-    }
-
-    @media (max-width: 768px) {
-      /* Hide original login/user in header on mobile — FAB handles it */
-      #auth-btn    { display: none !important; }
-      #u-chip      { display: none !important; }
-
-      /* Show FAB on mobile */
-      #mobile-auth-fab { display: flex !important; }
-
-      /* FAB buttons */
-      .mob-fab-btn {
-        font-family: var(--fb, monospace);
-        font-size: 10px;
-        letter-spacing: 1.5px;
-        padding: 10px 16px;
-        border: 1px solid var(--g, #00ff41);
-        background: rgba(2,5,2,.95);
-        color: var(--g, #00ff41);
-        cursor: pointer;
-        backdrop-filter: blur(8px);
-        box-shadow: 0 0 20px rgba(0,255,65,.2);
-        text-transform: uppercase;
-        transition: all .15s;
-        white-space: nowrap;
-        min-height: 40px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .mob-fab-btn:active  { opacity: .7; }
-      .mob-fab-btn.logout  {
-        border-color: var(--border, #1a2e1a);
-        color: var(--tdim, #4a6a4a);
-        font-size: 9px;
-        padding: 8px 12px;
-      }
-      .mob-fab-avatar {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        border: 1px solid var(--g, #00ff41);
-        object-fit: cover;
-      }
-      .mob-fab-name {
-        font-family: var(--fb, monospace);
-        font-size: 9px;
-        color: var(--g, #00ff41);
-        max-width: 100px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-    }
-
   </style>
 </head>
 <body>
@@ -828,7 +531,7 @@
       <p class="t-line">devctionary --list --all --realtime<span class="cursor"></span></p>
       <div class="srch">
         <span class="srch-p">❯</span>
-        <input class="srch-i" id="srch" type="text" oninput="onSrch(this.value)"
+        <input class="srch-i" id="srch" type="text"
           placeholder="search terms, definitions, tags…  (Ctrl+K)"
           oninput="onSrch(this.value)" autocomplete="off" spellcheck="false">
         <span class="srch-m" id="srch-m"></span>
@@ -1030,7 +733,7 @@ const S = {
   search:  '',
   active:  null,   // term open in modal
 };
-let byId = new Map() // id → term object
+const byId = new Map(); // id → term object
 
 /* ═══════════════════════════════════════════════════════════════════
    BOOT ANIMATION
@@ -1091,7 +794,6 @@ function initFB() {
     db   = firebase.firestore();
     auth = firebase.auth();
     auth.onAuthStateChanged(async u => {
-    updateMobileFAB(u);
       S.user    = u;
       S.isAdmin = u ? await chkAdmin(u.uid) : false;
       renderAuth();
@@ -1111,7 +813,15 @@ async function chkAdmin(uid) {
 }
 
 function subTerms() {
-  initTerms(); // paginated loading (replaces onSnapshot);
+  db.collection('terms').orderBy('addedAt','desc')
+    .onSnapshot(snap => {
+      S.terms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      S.terms.forEach(t => byId.set(t.id, t));
+      filter();
+      refreshStats();
+      refreshCats();
+      if (S.view === 'admin') renderAdmin();
+    }, e => { toast('DB error: ' + e.message, 'err'); console.error(e); });
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1806,295 +1516,6 @@ async function submitCmd() {
   await _origSubmitCmd();
 }
 
-
-
-/* ═══════════════════════════════════════════════════════════════════
-   ⚡  TERM LOADING — Paginated + Infinite Scroll
-   Self-contained. Works on mobile and desktop.
-   ═══════════════════════════════════════════════════════════════════ */
-
-// ── State ─────────────────────────────────────────────────────────────
-const PAGE_SIZE  = 48;
-let _cursor      = null;   // Firestore pagination cursor
-let _allLoaded   = false;
-let _loading     = false;
-let _termCache   = new Map(); // id → term object (dedup)
-let _catFilter   = '';
-let _searchQuery = '';
-let _searchTimer = null;
-let _searchVer   = 0;
-
-// ── Entry point called from init() ────────────────────────────────────
-async function initTerms() {
-  _showSkeletons();
-  await _loadPage(true);
-  _watchNewTerms();
-  _setupScroll();
-}
-
-// ── Show skeleton placeholders ────────────────────────────────────────
-function _showSkeletons() {
-  const g = document.getElementById('term-grid');
-  if (!g) return;
-  g.innerHTML = Array(8).fill(
-    '<div style="background:var(--panel);border:1px solid var(--border);min-height:130px;position:relative;overflow:hidden"><div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,255,65,.04),transparent);animation:shimmer 1.4s infinite"></div></div>'
-  ).join('');
-}
-
-// ── Load one page from Firestore ──────────────────────────────────────
-async function _loadPage(reset) {
-  if (_loading) return;
-  if (!reset && _allLoaded) return;
-  _loading = true;
-
-  if (reset) {
-    _cursor     = null;
-    _allLoaded  = false;
-    _termCache  = new Map();
-    S.terms     = [];
-    byId.clear ? byId.clear() : (byId = new Map());
-  }
-
-  _showLoader(true);
-
-  try {
-    let q = db.collection('terms').orderBy('addedAt', 'desc').limit(PAGE_SIZE);
-    if (_catFilter) q = q.where('category', '==', _catFilter);
-    if (_cursor)    q = q.startAfter(_cursor);
-
-    const snap = await q.get();
-
-    snap.forEach(d => {
-      if (!_termCache.has(d.id)) {
-        const t = { id: d.id, ...d.data() };
-        _termCache.set(d.id, t);
-        S.terms.push(t);
-        byId.set(d.id, t);
-      }
-    });
-
-    if (snap.docs.length > 0) _cursor = snap.docs[snap.docs.length - 1];
-    if (snap.docs.length < PAGE_SIZE) _allLoaded = true;
-
-  } catch (err) {
-    console.error('[Devctionary] loadPage error:', err);
-    toast('Failed to load terms: ' + err.message, 'err');
-  }
-
-  renderGrid();
-  _updateCount();
-  _showLoader(false);
-  _loading = false;
-}
-
-// ── Lightweight listener for new terms only ───────────────────────────
-function _watchNewTerms() {
-  try {
-    const since = firebase.firestore.Timestamp.now();
-    db.collection('terms')
-      .where('addedAt', '>', since)
-      .orderBy('addedAt', 'desc')
-      .onSnapshot(snap => {
-        let added = 0;
-        snap.docChanges().forEach(ch => {
-          if (ch.type === 'added' && !_termCache.has(ch.doc.id)) {
-            const t = { id: ch.doc.id, ...ch.doc.data() };
-            _termCache.set(t.id, t);
-            S.terms.unshift(t);
-            byId.set(t.id, t);
-            added++;
-          }
-        });
-        if (added > 0) { renderGrid(); _updateCount(); }
-      }, e => console.warn('[Devctionary] new-terms listener:', e));
-  } catch (e) { /* optional */ }
-}
-
-// ── Infinite scroll ───────────────────────────────────────────────────
-function _setupScroll() {
-  const sentinel = document.getElementById('load-sentinel');
-  if (!sentinel) {
-    // Create sentinel if patch_performance wasn't applied
-    const g = document.getElementById('term-grid');
-    if (g) {
-      const el = document.createElement('div');
-      el.id = 'load-sentinel';
-      el.style.cssText = 'height:1px;grid-column:1/-1';
-      g.parentNode.insertBefore(el, g.nextSibling);
-    }
-  }
-  const obs = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting && !_loading && !_allLoaded && !_searchQuery) {
-      _loadPage(false);
-    }
-  }, { rootMargin: '300px' });
-  const s = document.getElementById('load-sentinel');
-  if (s) obs.observe(s);
-}
-
-// ── Spinner / end message ─────────────────────────────────────────────
-function _showLoader(show) {
-  const el = document.getElementById('load-sentinel');
-  if (!el) return;
-  if (show) {
-    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;padding:24px;grid-column:1/-1;color:var(--tdim);font-size:10px;letter-spacing:2px"><div style="width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite;margin-right:10px"></div>LOADING...</div>';
-  } else if (_allLoaded) {
-    const n = S.terms.length;
-    el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--tdim);font-size:9px;letter-spacing:2px;grid-column:1/-1">${n.toLocaleString()} TERMS LOADED</div>`;
-  } else {
-    el.innerHTML = '';
-  }
-}
-
-function _updateCount() {
-  const el = document.getElementById('term-count-display');
-  if (!el) return;
-  const n = S.terms.length;
-  el.textContent = _searchQuery
-    ? `${_getFiltered().length} results for "${_searchQuery}"`
-    : `${n.toLocaleString()} terms${!_allLoaded ? ' · scroll for more' : ''}`;
-}
-
-// ── Filtering ─────────────────────────────────────────────────────────
-function _getFiltered() {
-  const q = _searchQuery.toLowerCase();
-  return S.terms.filter(t => {
-    if (_catFilter && t.category !== _catFilter) return false;
-    if (!q) return true;
-    return (t.term||'').toLowerCase().includes(q) ||
-           (t.definition||'').toLowerCase().includes(q) ||
-           (t.tags||[]).some(x => x.toLowerCase().includes(q));
-  });
-}
-
-// ── Category filter ───────────────────────────────────────────────────
-async function setCategoryFilter(btn, cat) {
-  _catFilter    = cat;
-  _searchQuery  = '';
-  const inp = document.getElementById('s-input') || document.querySelector('.s-input');
-  if (inp) inp.value = '';
-  // Highlight active pill
-  document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p === btn || (!cat && p.dataset.cat === '')));
-  await _loadPage(true);
-}
-
-// ── Search: instant local + parallel Firestore prefix ────────────────
-function handleSearch(val) {
-  _searchQuery = val.trim();
-  renderGrid();
-  _updateCount();
-
-  clearTimeout(_searchTimer);
-  if (!_searchQuery || _searchQuery.length < 2) return;
-
-  const ver = ++_searchVer;
-  _searchTimer = setTimeout(async () => {
-    try {
-      const q = _searchQuery.toLowerCase();
-      const snap = await db.collection('terms')
-        .orderBy('term')
-        .startAt(q)
-        .endAt(q + '')
-        .limit(30)
-        .get();
-
-      if (ver !== _searchVer) return;
-      let added = 0;
-      snap.forEach(d => {
-        if (!_termCache.has(d.id)) {
-          const t = { id: d.id, ...d.data() };
-          _termCache.set(d.id, t);
-          S.terms.push(t);
-          byId.set(d.id, t);
-          added++;
-        }
-      });
-      if (added > 0) { renderGrid(); _updateCount(); }
-    } catch (e) { /* index may not exist yet — local results still shown */ }
-  }, 200);
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   🔍  OPTIMIZED SEARCH
-   Strategy:
-   1. Show local cached results IMMEDIATELY (0ms)
-   2. Parallel Firestore prefix query (indexed, fast)
-   3. Merge + deduplicate results
-   4. Debounce: 180ms (prevent excessive reads)
-   ═══════════════════════════════════════════════════════════════════ */
-
-let _searchTimer   = null;
-let _searchVersion = 0; // cancel stale results
-
-function handleSearch(val) {
-  _activeSearch = val.trim();
-
-  // 1. Show local results immediately (instant UX)
-  renderGrid();
-  updateTermCount();
-
-  clearTimeout(_searchTimer);
-  if (!_activeSearch || _activeSearch.length < 2) return;
-
-  const myVersion = ++_searchVersion;
-  _searchTimer = setTimeout(() => _fireSearch(myVersion), 180);
-}
-
-async function _fireSearch(version) {
-  const q = _activeSearch.toLowerCase();
-  if (!q || q.length < 2) return;
-
-  try {
-    // Firestore prefix query on 'term' field (requires index)
-    const snap = await db.collection('terms')
-      .where('term', '>=', q)
-      .where('term', '<=', q + '')
-      .limit(30)
-      .get();
-
-    // Stale check: if user typed something else, discard
-    if (version !== _searchVersion) return;
-
-    let added = 0;
-    snap.forEach(d => {
-      if (!_byId.has(d.id)) {
-        const t = { id: d.id, ...d.data() };
-        S.terms.unshift(t);
-        byId.set(d.id, t);
-        _byId.set(d.id, t);
-        added++;
-      }
-    });
-
-    if (added > 0) {
-      renderGrid();
-      updateTermCount();
-    }
-  } catch (e) {
-    // Index not yet built — silently fall back to local results
-    if (e.code !== 'failed-precondition') console.warn('Search error:', e);
-  }
-}
-
-
-/* ── Mobile Auth FAB sync ─────────────────────────────────────────── */
-function updateMobileFAB(user) {
-  const loginBtn  = document.getElementById('mob-login-btn');
-  const userWrap  = document.getElementById('mob-user-wrap');
-  const mobAvatar = document.getElementById('mob-avatar');
-  const mobName   = document.getElementById('mob-user-name');
-  if (!loginBtn) return;
-  if (user) {
-    loginBtn.style.display  = 'none';
-    userWrap.style.display  = 'flex';
-    if (mobAvatar && user.photoURL)    mobAvatar.src         = user.photoURL;
-    if (mobName   && user.displayName) mobName.textContent   = user.displayName;
-  } else {
-    loginBtn.style.display  = 'flex';
-    userWrap.style.display  = 'none';
-  }
-}
-
 (async function init() {
   initRain();
   clock();
@@ -2235,23 +1656,6 @@ function updateMobileFAB(user) {
       </div>
     </div>
   </main>
-
-
-  <!-- Mobile Auth FAB (always visible on mobile) -->
-  <div id="mobile-auth-fab">
-    <!-- Logged out state -->
-    <button id="mob-login-btn" class="mob-fab-btn" onclick="doAuth()" style="display:none">
-      ▶ LOGIN
-    </button>
-    <!-- Logged in state -->
-    <div id="mob-user-wrap" style="display:none;align-items:center;gap:8px;flex-direction:row">
-      <img id="mob-avatar" class="mob-fab-avatar" src="" alt="">
-      <div style="display:flex;flex-direction:column;gap:3px">
-        <span id="mob-user-name" class="mob-fab-name"></span>
-        <button class="mob-fab-btn logout" onclick="logout()">LOGOUT</button>
-      </div>
-    </div>
-  </div>
 
 </body>
 </html>
