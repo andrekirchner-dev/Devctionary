@@ -6,6 +6,7 @@ rules_version = '2';
 //  Model:
 //   • terms/{termId}  — public read, any-auth create, admin-only edit/delete
 //   • admins/{uid}    — auth read, NO client writes (set via Firebase Console)
+//   • config/{doc}    — public read, admin-only write (SO tags cache, etc.)
 //
 //  To grant admin access:
 //    Firebase Console → Firestore → admins collection → Add document
@@ -51,6 +52,14 @@ service cloud.firestore {
       allow read: if isAuth();
       // No client can write to admins — use Firebase Console or Admin SDK only
       allow write: if false;
+    }
+
+    // ── CONFIG (SO tags cache, etc.) ────────────────────────────────
+    match /config/{doc} {
+      // Anyone can read config (SO tags autocomplete, etc.)
+      allow read: if true;
+      // Only admins can write config
+      allow write: if isAdmin();
     }
 
     // ── DENY ALL OTHER PATHS ────────────────────────────────────────
