@@ -942,7 +942,7 @@ function subTerms() {
 const _PS = 48;
 let _cur = null, _done = false, _busy = false;
 
-async function _loadPage(reset) {
+window._loadPage = async function(reset) {
   if (_busy || (!reset && _done)) return;
   _busy = true;
   if (reset) { _cur = null; _done = false; S.terms = []; byId.clear(); }
@@ -970,9 +970,11 @@ async function _loadPage(reset) {
 function _updateSentinel() {
   const el = document.getElementById('load-sentinel');
   if (!el) return;
-  el.innerHTML = _done
-    ? `<div style="text-align:center;padding:20px;color:var(--tdim);font-size:9px;letter-spacing:2px">${S.terms.length.toLocaleString()} TERMS LOADED</div>`
-    : '';
+  if (_done) {
+    el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--tdim);font-size:9px;letter-spacing:2px">${S.terms.length.toLocaleString()} TERMS LOADED</div>`;
+  } else {
+    el.innerHTML = `<div style="text-align:center;padding:16px"><button class="btn" onclick="window._loadPage&&window._loadPage(false)" style="font-size:10px;letter-spacing:.15em;padding:8px 24px">[ LOAD MORE ]</button></div>`;
+  }
 }
 
 // Listener só para termos NOVOS adicionados em tempo real
