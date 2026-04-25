@@ -447,53 +447,96 @@
 }
 
 
+  
+
+  
   @media (max-width: 768px) {
     #rain { display: none !important; }
+
+    /* Header: coluna, relative para ancorar botões absolutos */
     header {
-      position: sticky; top: 0; z-index: 200;
+      position: relative !important;
+      top: 0;
+      z-index: 200;
       padding: 0 !important;
-      display: flex !important; flex-direction: column !important;
+      display: flex !important;
+      flex-direction: column !important;
       background: var(--bg) !important;
       border-bottom: 1px solid var(--border);
     }
+
+    /* DEVCTIONARY: centralizado com espaço nas laterais para os botões */
     .h-logo {
-      display: flex !important; align-items: center !important;
-      justify-content: center !important; text-align: center !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
       font-size: clamp(13px, 4vw, 17px) !important;
       letter-spacing: 0.18em !important;
-      padding: 10px 80px !important;
-      width: 100% !important; box-sizing: border-box !important;
-      position: relative !important;
-    }
-    .h-right {
-      position: absolute !important; top: 8px !important; right: 12px !important;
-      display: flex !important; align-items: center !important;
-      gap: 6px !important; z-index: 201 !important;
-    }
-    #auth-btn {
-      font-size: 10px !important; padding: 6px 12px !important;
-      letter-spacing: 0.1em !important; white-space: nowrap !important;
-    }
-    #u-chip {
-      font-size: 10px !important; padding: 4px 8px !important;
-      max-width: 90px !important; overflow: hidden !important;
-      text-overflow: ellipsis !important; white-space: nowrap !important;
-    }
-    .h-nav {
-      display: flex !important; flex-direction: row !important;
-      overflow-x: auto !important; -webkit-overflow-scrolling: touch !important;
-      scrollbar-width: none !important;
-      gap: 4px !important; padding: 6px 10px !important;
-      border-top: 1px solid var(--border) !important;
-      flex-wrap: nowrap !important; width: 100% !important;
+      padding: 11px 95px !important;
+      width: 100% !important;
       box-sizing: border-box !important;
     }
-    .h-nav::-webkit-scrollbar { display: none; }
-    .nb, .h-nav button, .h-nav a {
-      flex-shrink: 0 !important; font-size: 10px !important;
-      padding: 5px 12px !important; white-space: nowrap !important;
+
+    /* GLOSSARY: topo-esquerdo, alinhado com LOGIN */
+    .h-nav {
+      position: static !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      padding: 7px 16px !important;
+      border-top: 1px solid var(--border) !important;
+      box-sizing: border-box !important;
     }
+
+    .h-nav .nb:first-child {
+      position: absolute !important;
+      top: 9px !important;
+      left: 12px !important;
+      font-size: 10px !important;
+      padding: 6px 12px !important;
+      white-space: nowrap !important;
+      z-index: 202 !important;
+    }
+
+    /* + ADD TERM: centralizado na segunda linha */
+    .h-nav .nb:not(:first-child) {
+      font-size: 10px !important;
+      padding: 6px 18px !important;
+      white-space: nowrap !important;
+    }
+
+    /* LOGIN / user chip: topo-direito, alinhado com GLOSSARY */
+    .h-right {
+      position: absolute !important;
+      top: 9px !important;
+      right: 12px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      z-index: 201 !important;
+    }
+
+    #auth-btn {
+      font-size: 10px !important;
+      padding: 6px 12px !important;
+      letter-spacing: 0.1em !important;
+      white-space: nowrap !important;
+    }
+
+    #u-chip {
+      font-size: 10px !important;
+      padding: 4px 8px !important;
+      max-width: 88px !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+
+    /* Grid coluna única */
     #term-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+
+    /* Modal bottom-sheet */
     .modal, [class*="modal"] { align-items: flex-end !important; }
     .modal-content, [class*="modal"] > div {
       width: 100% !important; max-width: 100% !important;
