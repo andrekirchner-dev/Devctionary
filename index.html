@@ -938,74 +938,57 @@ async function chkAdmin(uid) {
 }
 
 function subTerms() {
-  // ── Paginated loading (replaces onSnapshot) ───────────────────────
-const _PS = 48;
-let _cur = null, _done = false, _busy = false;
+  window._pg = { cur: null, done: false, busy: false };
 
-window._loadPage = async function(reset) {
-  if (_busy || (!reset && _done)) return;
-  _busy = true;
-  if (reset) { _cur = null; _done = false; S.terms = []; byId.clear(); }
-  try {
-    let q = db.collection('terms').orderBy('addedAt','desc').limit(_PS);
-    if (S.filter && S.filter !== 'all') q = q.where('category','==',S.filter);
-    if (_cur)    q = q.startAfter(_cur);
-    const snap = await q.get();
-    snap.forEach(d => {
-      if (!byId.has(d.id)) {
-        const t = {id:d.id,...d.data()};
-        S.terms.push(t);
-        byId.set(d.id,t);
-      }
-    });
-    if (snap.docs.length) _cur = snap.docs[snap.docs.length-1];
-    if (snap.docs.length < _PS) _done = true;
-  } catch(e) { toast('DB error: '+e.message,'err'); console.error(e); }
-  filter(); refreshStats(); refreshCats();
-  if (S.view==='admin') renderAdmin();
-  _busy = false;
-  _updateSentinel();
-}
+  window.loadMoreTerms = function() {
+    var pg = window._pg;
+    if (pg.busy || pg.done) return;
+    pg.busy = true;
+    _showLoadBtn(false);
 
-function _updateSentinel() {
-  const el = document.getElementById('load-sentinel');
-  if (!el) return;
-  if (_done) {
-    el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--tdim);font-size:9px;letter-spacing:2px">${S.terms.length.toLocaleString()} TERMS LOADED</div>`;
-  } else {
-    el.innerHTML = `<div style="text-align:center;padding:16px"><button class="btn" onclick="window._loadPage&&window._loadPage(false)" style="font-size:10px;letter-spacing:.15em;padding:8px 24px">[ LOAD MORE ]</button></div>`;
-  }
-}
+    var q = db.collection('terms').orderBy('addedAt','desc').limit(48);
+    if (window._pgFilter && window._pgFilter !== 'all')
+      q = q.where('category','==', window._pgFilter);
+    if (pg.cur) q = q.startAfter(pg.cur);
 
-// Listener só para termos NOVOS adicionados em tempo real
-try {
-  db.collection('terms')
-    .where('addedAt','>',firebase.firestore.Timestamp.now())
-    .orderBy('addedAt','desc')
-    .onSnapshot(snap => {
-      let added = 0;
-      snap.docChanges().forEach(ch => {
-        if (ch.type==='added' && !byId.has(ch.doc.id)) {
-          const t = {id:ch.doc.id,...ch.doc.data()};
-          S.terms.unshift(t); byId.set(t.id,t); added++;
+    q.get().then(function(snap) {
+      snap.forEach(function(d) {
+        if (!byId.has(d.id)) {
+          var t = Object.assign({ id: d.id }, d.data());
+          S.terms.push(t);
+          byId.set(d.id, t);
         }
       });
-      if (added>0) { filter(); refreshStats(); refreshCats(); }
-    }, e => console.warn('realtime listener:',e));
-} catch(e) {}
+      if (snap.size > 0) pg.cur = snap.docs[snap.size - 1];
+      if (snap.size < 48) pg.done = true;
+      pg.busy = false;
+      filter(); refreshStats(); refreshCats();
+      if (S.view === 'admin') renderAdmin();
+      _showLoadBtn(!pg.done);
+    }).catch(function(e) {
+      pg.busy = false;
+      _showLoadBtn(true);
+      toast('DB error: ' + e.message, 'err');
+      console.error(e);
+    });
+  };
 
-// Carga inicial
-_loadPage(true);
-
-// Infinite scroll
-setTimeout(() => {
-  const sentinel = document.getElementById('load-sentinel');
-  if (sentinel) {
-    new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && !_busy && !_done && !S.search) _loadPage(false);
-    }, {rootMargin:'400px'}).observe(sentinel);
+  function _showLoadBtn(show) {
+    var el = document.getElementById('load-sentinel');
+    if (!el) return;
+    if (window._pg.done) {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--tdim);font-size:9px;letter-spacing:2px">' + S.terms.length.toLocaleString() + ' TERMS LOADED</div>';
+    } else if (show) {
+      el.innerHTML = '<div style="text-align:center;padding:20px"><button class="btn" onclick="loadMoreTerms()" style="font-size:11px;letter-spacing:.15em;padding:9px 28px">[ LOAD MORE ]</button></div>';
+    } else {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--tdim);font-size:10px;letter-spacing:2px">LOADING...</div>';
+    }
   }
-}, 500);
+
+  // Carga inicial
+  window._pgFilter = S.filter;
+  S.terms = []; byId.clear();
+  window.loadMoreTerms();
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1843,3 +1826,5 @@ async function submitCmd() {
 
 </body>
 </html>
+
+<div id="load-sentinel" style="width:100%;grid-column:1/-1"></div>
