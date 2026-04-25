@@ -434,6 +434,18 @@
     .cmd-empty .ce-title{font-family:var(--fd);font-size:28px;color:var(--text);margin-bottom:6px}
     .cmd-empty .ce-sub{font-size:12px}
 
+
+    /* ── PERFORMANCE / PAGINATION ── */
+    .load-sentinel{height:60px;display:flex;align-items:center;justify-content:center;grid-column:1/-1}
+    .load-spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite;margin-right:10px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .load-end{font-size:10px;color:var(--tdim);letter-spacing:2px;text-transform:uppercase;padding:20px;text-align:center;grid-column:1/-1}
+    .term-count{font-size:10px;color:var(--tdim);margin-bottom:14px;letter-spacing:1px}
+    .skeleton-card{background:var(--panel);border:1px solid var(--border);min-height:140px;position:relative;overflow:hidden}
+    .skeleton-card::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(0,255,65,.04) 50%,transparent 100%);animation:shimmer 1.4s infinite}
+    @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+    .search-loading{opacity:.5;pointer-events:none}
+
   </style>
 </head>
 <body>
@@ -1514,6 +1526,225 @@ async function submitCmd() {
   }
   // Create mode — call original logic
   await _origSubmitCmd();
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   ⚡  PERFORMANCE: Paginated loading + infinite scroll
+   ═══════════════════════════════════════════════════════════════════ */
+
+const PAGE_SIZE   = 48;   // terms per page
+let _lastDoc      = null; // Firestore cursor
+let _allLoaded    = false;
+let _loadingPage  = false;
+let _searchTimer  = null;
+let _activeFilter = '';   // current category filter
+let _activeSearch = '';   // current search string
+let _byId         = new Map(); // id → term (local cache)
+
+// ── Boot: load first page, then set up real-time for NEW terms ────────
+async function initTerms() {
+  showSkeletons();
+  await loadPage(true);
+  listenForNewTerms();
+  setupInfiniteScroll();
+}
+
+// ── Show skeleton placeholders while first page loads ─────────────────
+function showSkeletons() {
+  const grid = document.getElementById('term-grid');
+  if (!grid) return;
+  grid.innerHTML = Array(12).fill('<div class="card skeleton-card"></div>').join('');
+}
+
+// ── Build the base Firestore query (with filters applied) ─────────────
+function _buildQuery(reset) {
+  let q = db.collection('terms').orderBy('addedAt', 'desc');
+  if (_activeFilter) q = q.where('category', '==', _activeFilter);
+  q = q.limit(PAGE_SIZE);
+  if (!reset && _lastDoc) q = q.startAfter(_lastDoc);
+  return q;
+}
+
+// ── Load one page from Firestore ──────────────────────────────────────
+async function loadPage(reset = false) {
+  if (_loadingPage) return;
+  if (!reset && _allLoaded) return;
+
+  _loadingPage = true;
+  if (reset) {
+    _lastDoc    = null;
+    _allLoaded  = false;
+    S.terms     = [];
+    _byId       = new Map();
+  }
+
+  showLoadingRow(true);
+
+  try {
+    let q = _buildQuery(reset);
+
+    // If searching, apply prefix filter (best-effort on loaded data)
+    // Full search is handled client-side after load
+    const snap = await q.get();
+
+    snap.forEach(d => {
+      if (!_byId.has(d.id)) {
+        const t = { id: d.id, ...d.data() };
+        S.terms.push(t);
+        byId.set(d.id, t);
+        _byId.set(d.id, t);
+      }
+    });
+
+    if (snap.docs.length > 0) {
+      _lastDoc = snap.docs[snap.docs.length - 1];
+    }
+    if (snap.docs.length < PAGE_SIZE) {
+      _allLoaded = true;
+    }
+
+    renderGrid();
+    updateTermCount();
+  } catch (e) {
+    console.error('loadPage error:', e);
+    toast('Failed to load terms: ' + e.message, 'err');
+  } finally {
+    _loadingPage = false;
+    showLoadingRow(false);
+  }
+}
+
+// ── Listen only for NEW terms added after page load ───────────────────
+function listenForNewTerms() {
+  const since = firebase.firestore.Timestamp.now();
+  db.collection('terms')
+    .where('addedAt', '>', since)
+    .orderBy('addedAt', 'desc')
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          const t = { id: change.doc.id, ...change.doc.data() };
+          if (!_byId.has(t.id)) {
+            S.terms.unshift(t);
+            byId.set(t.id, t);
+            _byId.set(t.id, t);
+            renderGrid();
+            updateTermCount();
+            toast(`New term "${t.term}" added!`);
+          }
+        }
+      });
+    }, e => console.warn('New terms listener:', e));
+}
+
+// ── Infinite scroll via IntersectionObserver ──────────────────────────
+function setupInfiniteScroll() {
+  const sentinel = document.getElementById('load-sentinel');
+  if (!sentinel) return;
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !_loadingPage && !_allLoaded && !_activeSearch) {
+      loadPage(false);
+    }
+  }, { rootMargin: '200px' });
+  obs.observe(sentinel);
+}
+
+// ── Show/hide spinner row ─────────────────────────────────────────────
+function showLoadingRow(show) {
+  const el = document.getElementById('load-sentinel');
+  if (!el) return;
+  if (show) {
+    el.innerHTML = `<div class="load-spinner"></div><span style="font-size:10px;color:var(--tdim);letter-spacing:2px">LOADING...</span>`;
+  } else if (_allLoaded) {
+    const n = S.terms.length;
+    el.innerHTML = `<div class="load-end">${n.toLocaleString()} term${n !== 1 ? 's' : ''} loaded</div>`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+// ── Term count display ────────────────────────────────────────────────
+function updateTermCount() {
+  const el = document.getElementById('term-count-display');
+  if (!el) return;
+  const shown = getFilteredTerms().length;
+  const total = S.terms.length;
+  el.textContent = _activeSearch
+    ? `${shown} result${shown !== 1 ? 's' : ''} for "${_activeSearch}"`
+    : `${total.toLocaleString()} terms loaded${!_allLoaded ? ' · scroll for more' : ''}`;
+}
+
+// ── Get filtered terms for rendering ─────────────────────────────────
+function getFilteredTerms() {
+  const q = _activeSearch.toLowerCase();
+  return S.terms.filter(t => {
+    const matchCat = !_activeFilter || t.category === _activeFilter;
+    if (!q) return matchCat;
+    return matchCat && (
+      (t.term || '').toLowerCase().includes(q) ||
+      (t.definition || '').toLowerCase().includes(q) ||
+      (t.tags || []).some(tag => tag.toLowerCase().includes(q))
+    );
+  });
+}
+
+// ── Search: debounced, resets pagination if filter is active ──────────
+function handleSearch(val) {
+  clearTimeout(_searchTimer);
+  _activeSearch = val.trim();
+  _searchTimer = setTimeout(async () => {
+    if (!_activeSearch) {
+      // No search: show paginated results normally
+      renderGrid();
+      updateTermCount();
+      return;
+    }
+    // With search: if we haven't loaded all terms yet, load all for this category
+    if (!_allLoaded) {
+      document.getElementById('term-grid').classList.add('search-loading');
+      await loadAllForSearch();
+      document.getElementById('term-grid').classList.remove('search-loading');
+    }
+    renderGrid();
+    updateTermCount();
+  }, 280);
+}
+
+// ── Load all terms for current filter (for search accuracy) ──────────
+async function loadAllForSearch() {
+  if (_allLoaded) return;
+  let q = db.collection('terms').orderBy('addedAt', 'desc');
+  if (_activeFilter) q = q.where('category', '==', _activeFilter);
+
+  // Load in batches until done
+  let cursor = _lastDoc;
+  let done = false;
+  while (!done) {
+    let bq = q.limit(200);
+    if (cursor) bq = bq.startAfter(cursor);
+    const snap = await bq.get();
+    snap.forEach(d => {
+      if (!_byId.has(d.id)) {
+        const t = { id: d.id, ...d.data() };
+        S.terms.push(t);
+        byId.set(d.id, t);
+        _byId.set(d.id, t);
+      }
+    });
+    if (snap.docs.length > 0) cursor = snap.docs[snap.docs.length - 1];
+    if (snap.docs.length < 200) { done = true; _allLoaded = true; _lastDoc = cursor; }
+  }
+}
+
+// ── Category filter: reset and reload ────────────────────────────────
+async function setCategoryFilter(cat) {
+  if (_activeFilter === cat) return;
+  _activeFilter = cat;
+  _activeSearch = '';
+  const si = document.getElementById('s-input');
+  if (si) si.value = '';
+  await loadPage(true);
 }
 
 (async function init() {
