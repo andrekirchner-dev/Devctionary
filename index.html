@@ -434,7 +434,41 @@
     .cmd-empty .ce-title{font-family:var(--fd);font-size:28px;color:var(--text);margin-bottom:6px}
     .cmd-empty .ce-sub{font-size:12px}
 
-  </style>
+  
+@media(max-width:768px){
+  #rain{display:none!important}
+  header{position:sticky;top:0;z-index:200;background:rgba(2,5,2,.97);backdrop-filter:blur(10px)}
+  nav{display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:56px;z-index:190;background:rgba(2,5,2,.95)}
+  nav::-webkit-scrollbar{display:none}
+  nav button,.nb{flex-shrink:0;font-size:9px!important;padding:6px 14px!important;white-space:nowrap}
+  main{padding:12px!important}
+  .grid,.cards-grid{grid-template-columns:1fr!important}
+  .card{padding:14px!important}
+  .overlay{align-items:flex-end!important;padding:0!important}
+  .modal-box{width:100%!important;max-width:100%!important;max-height:90vh!important;border-radius:16px 16px 0 0!important;border-left:none!important;border-right:none!important;border-bottom:none!important;overflow-y:auto;animation:slideUp .2s ease!important}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .pills,.fc-row{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important}
+  .pills::-webkit-scrollbar,.fc-row::-webkit-scrollbar{display:none}
+  .pill,.fc{flex-shrink:0}
+  .view-hdr{flex-direction:column!important;gap:10px!important}
+  .view-hdr .btn{width:100%}
+  .form-grid{grid-template-columns:1fr!important}
+  .cmd-grid{grid-template-columns:1fr!important}
+  .h-right{position:fixed;bottom:16px;right:14px;z-index:999}
+  #auth-btn,.btn-sm{font-size:10px!important;padding:8px 14px!important;background:rgba(2,5,2,.95)!important;border:1px solid var(--g)!important;box-shadow:0 0 16px rgba(0,255,65,.2)!important;backdrop-filter:blur(8px)!important}
+  .u-chip{display:none!important}
+}
+@media(min-width:481px) and (max-width:768px){
+  .grid,.cards-grid{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(max-width:480px){
+  .modal-box{max-height:94vh!important}
+}
+@media(hover:none) and (pointer:coarse){
+  .card:hover{transform:none!important}
+}
+
+</style>
 </head>
 <body>
 
