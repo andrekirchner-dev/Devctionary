@@ -662,6 +662,78 @@
       .btn:hover span { color: inherit; }
     }
 
+
+    /* ═══════════════════════════════════════════════════════════════
+       MOBILE LOGIN — Always visible
+    ═══════════════════════════════════════════════════════════════ */
+
+    /* Mobile FAB: floating login button */
+    #mobile-auth-fab {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 16px;
+      z-index: 1000;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @media (max-width: 768px) {
+      /* Hide original login/user controls in nav on mobile
+         (they'll show via the FAB instead) */
+      #login-btn   { display: none !important; }
+      #user-info   { display: none !important; }
+      .user-area   { display: none !important; }
+      #auth-area   { display: none !important; }
+
+      /* Show FAB on mobile */
+      #mobile-auth-fab { display: flex !important; }
+
+      /* FAB buttons */
+      .mob-fab-btn {
+        font-family: var(--fb, monospace);
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        padding: 10px 16px;
+        border: 1px solid var(--g, #00ff41);
+        background: rgba(2,5,2,.95);
+        color: var(--g, #00ff41);
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 0 20px rgba(0,255,65,.2);
+        text-transform: uppercase;
+        transition: all .15s;
+        white-space: nowrap;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .mob-fab-btn:active  { opacity: .7; }
+      .mob-fab-btn.logout  {
+        border-color: var(--border, #1a2e1a);
+        color: var(--tdim, #4a6a4a);
+        font-size: 9px;
+        padding: 8px 12px;
+      }
+      .mob-fab-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid var(--g, #00ff41);
+        object-fit: cover;
+      }
+      .mob-fab-name {
+        font-family: var(--fb, monospace);
+        font-size: 9px;
+        color: var(--g, #00ff41);
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2004,6 +2076,25 @@ async function _fireSearch(version) {
   }
 }
 
+
+/* ── Mobile Auth FAB sync ─────────────────────────────────────────── */
+function updateMobileFAB(user) {
+  const loginBtn  = document.getElementById('mob-login-btn');
+  const userWrap  = document.getElementById('mob-user-wrap');
+  const mobAvatar = document.getElementById('mob-avatar');
+  const mobName   = document.getElementById('mob-user-name');
+  if (!loginBtn) return;
+  if (user) {
+    loginBtn.style.display = 'none';
+    userWrap.style.display = 'flex';
+    if (mobAvatar && user.photoURL) mobAvatar.src = user.photoURL;
+    if (mobName)   mobName.textContent = user.displayName || user.email || '';
+  } else {
+    loginBtn.style.display = 'flex';
+    userWrap.style.display = 'none';
+  }
+}
+
 (async function init() {
   initRain();
   clock();
@@ -2144,6 +2235,23 @@ async function _fireSearch(version) {
       </div>
     </div>
   </main>
+
+
+  <!-- Mobile Auth FAB (always visible on mobile) -->
+  <div id="mobile-auth-fab">
+    <!-- Logged out state -->
+    <button id="mob-login-btn" class="mob-fab-btn" onclick="login()" style="display:none">
+      ▶ LOGIN
+    </button>
+    <!-- Logged in state -->
+    <div id="mob-user-wrap" style="display:none;align-items:center;gap:8px;flex-direction:row">
+      <img id="mob-avatar" class="mob-fab-avatar" src="" alt="">
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <span id="mob-user-name" class="mob-fab-name"></span>
+        <button class="mob-fab-btn logout" onclick="logout()">LOGOUT</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
