@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEVCTIONARY // Developer & VibeCoder Dictionary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    .hidden { display: none !important; }
+
+    :root {
+      --g:       #00ff41;
+      --g-dim:   #00b32e;
+      --g-dark:  #003d10;
+      --g-glow:  rgba(0,255,65,.35);
+      --g-sub:   rgba(0,255,65,.05);
+      --c:       #00ffff;
+      --c-dim:   #009999;
+      --red:     #ff3333;
+      --amber:   #ffaa00;
+      --bg:      #050a05;
+      --bg-c:    #080e08;
+      --border:  rgba(0,255,65,.18);
+      --bhi:     rgba(0,255,65,.45);
+      --text:    #b8f5c8;
+      --tdim:    #3d6644;
+      --tmid:    #6a9e72;
+      --fd:      'VT323', monospace;
+      --fb:      'Share Tech Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--fb);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── EFFECTS ── */
+    #rain {
+      position: fixed; inset: 0; z-index: 0;
+      opacity: .06; pointer-events: none;
+    }
+    .scanlines {
+      position: fixed; inset: 0; z-index: 1000; pointer-events: none;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px,
+        rgba(0,0,0,.04) 2px, rgba(0,0,0,.04) 4px);
+    }
+    .vignette {
+      position: fixed; inset: 0; z-index: 999; pointer-events: none;
+      background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,.65) 100%);
+    }
+
+    /* ── APP SHELL ── */
+    #app { position: relative; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── HEADER ── */
+    #hdr {
+      position: sticky; top: 0; z-index: 200;
+      border-bottom: 1px solid var(--border);
+      background: rgba(5,10,5,.9);
+      backdrop-filter: blur(8px);
+      padding: 0 28px; height: 64px;
+      display: flex; align-items: center; gap: 28px;
+    }
+    .logo-g { flex-shrink: 0; cursor: pointer; }
+    .logo {
+      font-family: var(--fd); font-size: 34px;
+      color: var(--g); letter-spacing: 5px; line-height: 1;
+      text-shadow: 0 0 24px var(--g-glow), 0 0 48px rgba(0,255,65,.12);
+      animation: logoFlick 7s infinite;
+    }
+    .logo::before { content: '> '; color: var(--g-dim); }
+    @keyframes logoFlick { 0%,88%,90%,92%,100%{opacity:1} 89%,91%{opacity:.4} }
+    .logo-sub { font-size: 9px; color: var(--tdim); letter-spacing: 4px; padding-left: 22px; margin-top:-3px; }
+
+    .h-nav { display: flex; gap: 2px; flex: 1; }
+    .nb {
+      font-family: var(--fb); font-size: 11px; padding: 6px 16px;
+      border: 1px solid transparent; background: transparent;
+      color: var(--tdim); cursor: pointer; letter-spacing: 1.5px;
+      text-transform: uppercase; transition: all .15s; position: relative;
+    }
+    .nb:hover { color: var(--g); border-color: var(--border); background: var(--g-sub); }
+    .nb.active { color: var(--g); border-color: var(--bhi); background: var(--g-sub); }
+    .nb.active::after {
+      content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+      height: 1px; background: var(--g);
+    }
+
+    .h-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .u-chip {
+      font-size: 11px; color: var(--tmid); border: 1px solid var(--border);
+      padding: 3px 10px; white-space: nowrap; max-width: 180px;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .u-chip .adm { color: var(--c); margin-left: 5px; }
+
+    /* ── BUTTON SYSTEM ── */
+    .btn {
+      font-family: var(--fb); font-size: 11px; padding: 7px 18px;
+      border: 1px solid var(--g); background: transparent; color: var(--g);
+      cursor: pointer; letter-spacing: 1.5px; text-transform: uppercase;
+      position: relative; overflow: hidden; transition: color .15s; white-space: nowrap;
+    }
+    .btn::before {
+      content: ''; position: absolute; inset: 0; background: var(--g);
+      transform: translateX(-101%); transition: transform .15s ease; z-index: 0;
+    }
+    .btn span { position: relative; z-index: 1; }
+    .btn:hover { color: var(--bg); }
+    .btn:hover::before { transform: translateX(0); }
+    .btn-sm { font-size: 10px; padding: 4px 12px; }
+    .btn-c { border-color: var(--c); color: var(--c); }
+    .btn-c::before { background: var(--c); }
+    .btn-c:hover { color: var(--bg); }
+    .btn-r { border-color: var(--red); color: var(--red); }
+    .btn-r::before { background: var(--red); }
+    .btn-r:hover { color: #fff; }
+
+    /* ── MAIN ── */
+    #main { flex:1; max-width:1280px; width:100%; margin:0 auto; padding:36px 28px; }
+
+    .t-line { font-size:11px; color:var(--tdim); margin-bottom:20px; }
+    .t-line::before { content:'$ '; color:var(--c); }
+    .cursor {
+      display:inline-block; width:8px; height:14px;
+      background:var(--g); vertical-align:middle; margin-left:2px;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── SEARCH ── */
+    .srch {
+      display:flex; align-items:center; gap:10px;
+      border:1px solid var(--border); background:rgba(0,20,5,.4);
+      padding:13px 18px; margin-bottom:20px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .srch:focus-within { border-color:var(--g-dim); box-shadow:0 0 24px rgba(0,255,65,.07); }
+    .srch-p { color:var(--c); font-size:18px; flex-shrink:0; }
+    .srch-i {
+      flex:1; background:transparent; border:none; outline:none;
+      color:var(--g); font-family:var(--fb); font-size:15px;
+      caret-color:var(--g); min-width:0;
+    }
+    .srch-i::placeholder { color:var(--tdim); }
+    .srch-m { font-size:10px; color:var(--tdim); flex-shrink:0; }
+
+    /* ── FILTERS ── */
+    .f-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:24px; }
+    .fc {
+      font-family:var(--fb); font-size:10px; padding:3px 12px;
+      border:1px solid var(--tdim); background:transparent; color:var(--tdim);
+      cursor:pointer; text-transform:uppercase; letter-spacing:1px; transition:all .12s;
+    }
+    .fc:hover, .fc.active { border-color:var(--g); color:var(--g); background:var(--g-sub); }
+
+    /* ── STATS ── */
+    .stats {
+      display:flex; margin-bottom:28px;
+      border:1px solid var(--border); background:rgba(0,10,2,.5); overflow:hidden;
+    }
+    .st { flex:1; padding:10px 16px; border-right:1px solid var(--border); font-size:11px; }
+    .st:last-child { border-right:none; }
+    .st-l { color:var(--tdim); display:block; }
+    .st-v { color:var(--g); font-size:20px; font-family:var(--fd); display:block; line-height:1.2; }
+
+    /* ── GRID ── */
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px; }
+
+    /* ── CARD ── */
+    .card {
+      border:1px solid var(--border); background:var(--bg-c);
+      cursor:pointer; position:relative; overflow:hidden;
+      transition: border-color .2s, box-shadow .2s, transform .2s;
+      animation: cardIn .3s ease both;
+    }
+    @keyframes cardIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+    .card:hover {
+      border-color:var(--g-dim); transform:translateY(-2px);
+      box-shadow:0 0 28px rgba(0,255,65,.1), inset 0 0 28px rgba(0,255,65,.02);
+    }
+    .card::before {
+      content:''; position:absolute; bottom:0; left:0;
+      width:0; height:1px; background:var(--g); transition:width .3s;
+    }
+    .card:hover::before { width:100%; }
+    .c-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:7px 12px; border-bottom:1px solid var(--border);
+      background:rgba(0,255,65,.02); font-size:10px; color:var(--tdim);
+    }
+    .dots { display:flex; gap:5px; }
+    .dot { width:9px; height:9px; border-radius:50%; }
+    .dot:nth-child(1){background:#ff5f56} .dot:nth-child(2){background:#ffbd2e} .dot:nth-child(3){background:#27c93f}
+    .c-cat {
+      font-size:9px; color:var(--c-dim); border:1px solid rgba(0,255,255,.2);
+      padding:1px 7px; text-transform:uppercase; letter-spacing:1px;
+    }
+    .c-body { padding:14px 16px; }
+    .c-term {
+      font-family:var(--fd); font-size:28px; color:var(--g);
+      text-shadow:0 0 12px rgba(0,255,65,.25); line-height:1.1; margin-bottom:8px;
+    }
+    .c-def {
+      font-size:12px; color:var(--text); line-height:1.55; opacity:.75;
+      display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .c-foot {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:7px 12px; border-top:1px solid var(--border); font-size:9px; color:var(--tdim);
+    }
+
+    /* ── EMPTY ── */
+    .empty { grid-column:1/-1; text-align:center; padding:80px 24px; }
+    .e-art { font-family:var(--fd); font-size:14px; color:var(--bhi); white-space:pre; margin-bottom:20px; line-height:1.3; }
+    .e-msg { font-size:12px; color:var(--tdim); margin-bottom:20px; }
+
+    /* ── OVERLAY ── */
+    .ov {
+      position:fixed; inset:0; z-index:500;
+      background:rgba(0,0,0,.88); display:flex;
+      align-items:center; justify-content:center;
+      padding:20px; backdrop-filter:blur(3px);
+      animation:ovIn .15s ease;
+    }
+    @keyframes ovIn { from{opacity:0} to{opacity:1} }
+    .modal {
+      background:var(--bg-c); border:1px solid var(--g-dim);
+      max-width:680px; width:100%; max-height:90vh; overflow-y:auto;
+      box-shadow:0 0 80px rgba(0,255,65,.12);
+      animation:mUp .2s ease;
+    }
+    @keyframes mUp { from{transform:translateY(16px);opacity:0} to{transform:none;opacity:1} }
+    .m-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:9px 16px; border-bottom:1px solid var(--border);
+      background:rgba(0,255,65,.04); font-size:10px; color:var(--tdim);
+    }
+    .m-path { color:var(--g-dim); }
+    .m-x {
+      background:none; border:none; color:var(--tdim); cursor:pointer;
+      font-size:18px; font-family:var(--fb); padding:0 2px;
+      transition:color .15s; line-height:1;
+    }
+    .m-x:hover { color:var(--red); }
+    .m-body { padding:28px 28px 32px; }
+    .m-term {
+      font-family:var(--fd); font-size:52px; color:var(--g);
+      text-shadow:0 0 24px var(--g-glow); line-height:1; margin-bottom:10px;
+    }
+    .m-meta { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:22px; font-size:11px; color:var(--tdim); }
+    .m-mcat { color:var(--c); border:1px solid rgba(0,255,255,.25); padding:2px 9px; font-size:10px; text-transform:uppercase; letter-spacing:1px; }
+    .m-div { border:none; border-top:1px solid var(--border); margin:18px 0; }
+    .m-def { font-size:14px; color:var(--text); line-height:1.85; white-space:pre-wrap; }
+    .m-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:22px; }
+    .tag { font-size:10px; color:var(--tdim); border:1px solid var(--border); padding:2px 9px; }
+    .tag::before { content:'#'; color:var(--g-dim); }
+    .m-adm { display:flex; gap:10px; margin-top:24px; padding-top:20px; border-top:1px solid var(--border); }
+
+    /* ── FORMS ── */
+    .fv { max-width:760px; }
+    .fh { font-family:var(--fd); font-size:46px; color:var(--g); text-shadow:0 0 20px rgba(0,255,65,.3); margin-bottom:6px; }
+    .fs { font-size:12px; color:var(--tdim); margin-bottom:36px; }
+    .fg { display:grid; grid-template-columns:1fr 1fr; gap:20px 24px; }
+    .fg .full { grid-column:1/-1; }
+    .fi { display:flex; flex-direction:column; gap:7px; }
+    .fl { font-size:10px; color:var(--c); text-transform:uppercase; letter-spacing:2px; }
+    .fl::before { content:'> '; color:var(--g-dim); }
+    .inp, .sel, .ta {
+      width:100%; background:rgba(0,20,5,.5); border:1px solid var(--border);
+      padding:11px 14px; color:var(--g); font-family:var(--fb); font-size:13px;
+      outline:none; transition:border-color .2s, box-shadow .2s;
+      caret-color:var(--g); border-radius:0;
+    }
+    .inp:focus, .sel:focus, .ta:focus { border-color:var(--g-dim); box-shadow:0 0 18px rgba(0,255,65,.07); }
+    .inp::placeholder, .ta::placeholder { color:var(--tdim); }
+    .sel option { background:#080e08; color:var(--g); }
+    .ta { min-height:150px; resize:vertical; line-height:1.65; }
+    .fhint { font-size:10px; color:var(--tdim); }
+    .fa { display:flex; gap:12px; margin-top:32px; padding-top:24px; border-top:1px solid var(--border); }
+
+    /* ── AUTH GATE ── */
+    .gate { text-align:center; padding:100px 24px; max-width:480px; margin:0 auto; }
+    .g-art { font-family:var(--fd); font-size:14px; color:var(--bhi); white-space:pre; margin-bottom:24px; line-height:1.3; }
+    .g-title { font-family:var(--fd); font-size:40px; color:var(--g); margin-bottom:10px; }
+    .g-msg { font-size:12px; color:var(--tdim); margin-bottom:28px; line-height:1.7; }
+
+    /* ── ADMIN TABLE ── */
+    .a-head { font-family:var(--fd); font-size:42px; color:var(--c); margin-bottom:6px; }
+    .tbl-w { overflow-x:auto; border:1px solid var(--border); }
+    table.atbl { width:100%; border-collapse:collapse; font-size:12px; }
+    .atbl th { text-align:left; padding:9px 14px; font-size:9px; color:var(--c); text-transform:uppercase; letter-spacing:2px; border-bottom:1px solid var(--border); background:rgba(0,255,255,.03); }
+    .atbl td { padding:9px 14px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+    .atbl tr:last-child td { border-bottom:none; }
+    .atbl tr:hover td { background:rgba(0,255,65,.02); }
+    .tbl-t { color:var(--g); font-family:var(--fd); font-size:20px; }
+    .tbl-ac { display:flex; gap:7px; }
+
+    /* ── TOAST ── */
+    #toasts { position:fixed; bottom:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+    .toast {
+      font-family:var(--fb); font-size:12px; padding:11px 16px;
+      border:1px solid var(--g); background:var(--bg-c); color:var(--g);
+      min-width:240px; box-shadow:0 0 24px rgba(0,255,65,.2);
+      animation:tIn .2s ease, tOut .3s ease 3.2s forwards;
+    }
+    .toast.err { border-color:var(--red); color:var(--red); box-shadow:0 0 24px rgba(255,51,51,.2); }
+    .toast.warn { border-color:var(--amber); color:var(--amber); }
+    .toast::before { content:'[SYS] '; color:var(--g-dim); }
+    .toast.err::before { content:'[ERR] '; color:var(--red); opacity:.7; }
+    .toast.warn::before { content:'[WRN] '; color:var(--amber); opacity:.7; }
+    @keyframes tIn { from{transform:translateX(16px);opacity:0} to{transform:none;opacity:1} }
+    @keyframes tOut { to{opacity:0;transform:translateX(16px)} }
+
+    /* ── BOOT ── */
+    #boot { position:fixed; inset:0; background:var(--bg); z-index:9990; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    #boot.gone { display:none; }
+    .b-logo {
+      font-family:var(--fd); font-size:80px; color:var(--g); letter-spacing:10px;
+      text-shadow:0 0 40px var(--g-glow), 0 0 80px rgba(0,255,65,.1);
+      animation:bPulse 2s ease;
+    }
+    @keyframes bPulse { 0%{opacity:0;transform:scale(.95)} 30%{opacity:1;transform:scale(1)} 100%{opacity:1} }
+    .b-log { margin-top:36px; width:440px; max-width:90vw; font-size:13px; color:var(--g-dim); line-height:2; }
+    .b-line { animation:bLine .05s ease forwards; }
+    @keyframes bLine { from{opacity:0} to{opacity:1} }
+
+    /* ── STATUS BAR ── */
+    #sb {
+      border-top:1px solid var(--border); padding:5px 28px;
+      display:flex; justify-content:space-between; font-size:10px; color:var(--tdim);
+      background:rgba(5,10,5,.92); backdrop-filter:blur(4px);
+    }
+    .pdot { display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--g); margin-right:5px; vertical-align:middle; animation:blink 1.2s infinite; }
+
+    ::-webkit-scrollbar { width:4px; height:4px; }
+    ::-webkit-scrollbar-track { background:var(--bg); }
+    ::-webkit-scrollbar-thumb { background:var(--g-dark); }
+    ::-webkit-scrollbar-thumb:hover { background:var(--tdim); }
+
+    @media(max-width:700px) {
+      #hdr { padding:0 16px; gap:16px; }
+      .logo { font-size:26px; letter-spacing:3px; }
+      .logo-sub { display:none; }
+      #main { padding:20px 16px; }
+      .grid { grid-template-columns:1fr; }
+      .fg { grid-template-columns:1fr; }
+      .fg .full { grid-column:1; }
+      .stats { flex-wrap:wrap; }
+      .st { min-width:50%; border-bottom:1px solid var(--border); }
+    }
+    @media(max-width:480px) { .b-logo { font-size:52px; } }
+  </style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<canvas id="rain"></canvas>
+<div id="toasts"></div>
+
+<!-- BOOT SCREEN -->
+<div id="boot">
+  <div class="b-logo">DEVCTIONARY</div>
+  <div class="b-log" id="b-log"></div>
+</div>
+
+<!-- TERM DETAIL MODAL -->
+<div class="ov hidden" id="ov-term">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="m-bar">
+      <span class="m-path" id="m-path">devctionary://term/</span>
+      <button class="m-x" id="m-close">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="m-term" id="m-name"></div>
+      <div class="m-meta" id="m-meta"></div>
+      <hr class="m-div">
+      <div class="m-def" id="m-def"></div>
+      <div class="m-tags" id="m-tags"></div>
+      <div class="m-adm hidden" id="m-adm">
+        <button class="btn btn-sm btn-c" id="m-edit-btn"><span>[ EDIT ]</span></button>
+        <button class="btn btn-sm btn-r" id="m-del-btn"><span>[ DELETE ]</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL (ADMIN) -->
+<div class="ov hidden" id="ov-edit">
+  <div class="modal" role="dialog">
+    <div class="m-bar">
+      <span class="m-path">devctionary://admin/edit-term</span>
+      <button class="m-x" id="e-close">✕</button>
+    </div>
+    <div class="m-body">
+      <div style="font-family:var(--fd);font-size:36px;color:var(--c);margin-bottom:24px;">> EDIT TERM</div>
+      <input type="hidden" id="e-id">
+      <div class="fg">
+        <div class="fi">
+          <label class="fl">Term</label>
+          <input type="text" class="inp" id="e-term" maxlength="100">
+        </div>
+        <div class="fi">
+          <label class="fl">Category</label>
+          <select class="sel" id="e-cat"></select>
+        </div>
+        <div class="fi full">
+          <label class="fl">Definition</label>
+          <textarea class="ta" id="e-def"></textarea>
+        </div>
+        <div class="fi full">
+          <label class="fl">Tags <span style="color:var(--tdim);font-size:9px;text-transform:none;letter-spacing:0">(comma separated)</span></label>
+          <input type="text" class="inp" id="e-tags">
+        </div>
+      </div>
+      <div class="fa">
+        <button class="btn btn-c" id="e-save"><span>[ SAVE CHANGES ]</span></button>
+        <button class="btn" id="e-cancel"><span>[ CANCEL ]</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header id="hdr">
+    <div class="logo-g" onclick="sv('list')">
+      <div class="logo">DEVCTIONARY</div>
+      <div class="logo-sub">Developer & VibeCoder Dictionary</div>
+    </div>
+    <nav class="h-nav">
+      <button class="nb active" id="n-list" onclick="sv('list')">Glossary</button>
+      <button class="nb" id="n-add"  onclick="sv('add')">+ Add Term</button>
+      <button class="nb hidden" id="n-admin" onclick="sv('admin')">⚡ Admin</button>
+    </nav>
+    <div class="h-right">
+      <div class="u-chip hidden" id="u-chip"></div>
+      <button class="btn btn-sm" id="auth-btn" onclick="doAuth()"><span>[ LOGIN ]</span></button>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- LIST VIEW -->
+    <div id="v-list">
+      <p class="t-line">devctionary --list --all --realtime<span class="cursor"></span></p>
+      <div class="srch">
+        <span class="srch-p">❯</span>
+        <input class="srch-i" id="srch" type="text"
+          placeholder="search terms, definitions, tags…  (Ctrl+K)"
+          oninput="onSrch(this.value)" autocomplete="off" spellcheck="false">
+        <span class="srch-m" id="srch-m"></span>
+      </div>
+      <div class="f-row" id="f-row">
+        <button class="fc active" data-cat="all" onclick="setF('all')">[ALL]</button>
+      </div>
+      <div class="stats">
+        <div class="st"><span class="st-l">TERMS</span><span class="st-v" id="s-t">0</span></div>
+        <div class="st"><span class="st-l">CONTRIBUTORS</span><span class="st-v" id="s-c">0</span></div>
+        <div class="st"><span class="st-l">CATEGORIES</span><span class="st-v" id="s-k">0</span></div>
+        <div class="st"><span class="st-l">STATUS</span><span class="st-v" style="color:var(--g);font-size:13px;padding-top:5px"><span class="pdot"></span>LIVE</span></div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <!-- ADD VIEW -->
+    <div id="v-add" class="hidden">
+      <div id="gate" class="gate hidden">
+        <div class="g-art">╔═══════════════════╗
+║   ACCESS DENIED   ║
+║   UNAUTHORIZED    ║
+╚═══════════════════╝</div>
+        <div class="g-title">> LOGIN REQUIRED</div>
+        <div class="g-msg">Authentication is required to contribute to the<br>DEVCTIONARY lexicon. Login is free and instant.</div>
+        <button class="btn" onclick="doAuth()"><span>[ LOGIN WITH GOOGLE ]</span></button>
+      </div>
+      <div id="add-form" class="fv hidden">
+        <p class="t-line">devctionary --new-term --interactive</p>
+        <div class="fh">> NEW TERM</div>
+        <div class="fs">Add a term to the Developer & VibeCoder Dictionary. Submissions are public, permanent, and community-owned. Admins may edit or remove inappropriate entries.</div>
+        <div class="fg">
+          <div class="fi">
+            <label class="fl">Term *</label>
+            <input class="inp" id="a-term" type="text" placeholder="e.g. Hydration, LLM, Vibe Coding…" maxlength="100">
+            <span class="fhint">Term, acronym, or concept to define.</span>
+          </div>
+          <div class="fi">
+            <label class="fl">Category *</label>
+            <select class="sel" id="a-cat"></select>
+          </div>
+          <div class="fi full">
+            <label class="fl">Definition *</label>
+            <textarea class="ta" id="a-def" placeholder="Clear and thorough definition. Write as if explaining to a fellow developer. Be precise — no markdown."></textarea>
+          </div>
+          <div class="fi full">
+            <label class="fl">Tags <span style="color:var(--tdim);font-size:9px;text-transform:none;letter-spacing:0">(optional, comma separated)</span></label>
+            <input class="inp" id="a-tags" type="text" placeholder="api, backend, async, performance…">
+            <span class="fhint">Keywords that help others discover this term.</span>
+          </div>
+        </div>
+        <div class="fa">
+          <button class="btn btn-c" onclick="submitTerm()"><span>[ SUBMIT TERM ]</span></button>
+          <button class="btn" onclick="sv('list')"><span>[ CANCEL ]</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN VIEW -->
+    <div id="v-admin" class="hidden">
+      <p class="t-line">devctionary --admin --uid=$(whoami)</p>
+      <div class="a-head">> ADMIN PANEL</div>
+      <div style="font-size:11px;color:var(--tdim);margin-bottom:24px">
+        Root access granted. Edit or delete any term. All mutations are logged with your UID.
+      </div>
+      <div class="tbl-w">
+        <table class="atbl">
+          <thead>
+            <tr>
+              <th>TERM</th><th>CATEGORY</th><th>ADDED BY</th><th>DATE</th><th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="a-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <footer id="sb">
+    <span><span class="pdot"></span>devctionary v1.0 // firebase:firestore // open-source // MIT</span>
+    <span id="sb-u">guest@devctionary</span>
+    <span id="sb-t"></span>
+  </footer>
+</div>
+
+<!-- FIREBASE COMPAT SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   ⚙️  FIREBASE CONFIGURATION
+   ───────────────────────────────────────────────────────────────────
+   1. Go to https://console.firebase.google.com
+   2. Create a project → Enable Firestore + Authentication (Google)
+   3. Project Settings → Your Apps → Add Web App → copy config below
+   4. Deploy firestore.rules from the included file
+   5. To make someone admin: Firestore → admins → add doc with their UID
+   ═══════════════════════════════════════════════════════════════════ */
+const FB_CFG = {
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
+};
+
+/* ── CATEGORIES ── */
+const CATS = [
+  'Frontend','Backend','DevOps','AI / ML',
+  'Web3','Architecture','Security',
+  'Tools','Concepts','VibeCoding','Other'
+];
+
+/* ── BOOT MESSAGES ── */
+const BOOT = [
+  '[SYS]  DEVCTIONARY kernel initializing...',
+  '[SYS]  Loading Firebase v10 modules...',
+  '[AUTH] Handshaking with Google OAuth...',
+  '[DB]   Connecting to Firestore cluster...',
+  '[NET]  Establishing real-time listener...',
+  '[UI]   Rendering terminal interface...',
+  '[SYS]  ✓ Boot complete. Welcome to DEVCTIONARY.',
+];
+
+/* ── APP STATE ── */
+let db, auth;
+const S = {
+  user:    null,
+  isAdmin: false,
+  terms:   [],     // all terms from Firestore
+  shown:   [],     // filtered subset
+  view:    'list',
+  filter:  'all',
+  search:  '',
+  active:  null,   // term open in modal
+};
+const byId = new Map(); // id → term object
+
+/* ═══════════════════════════════════════════════════════════════════
+   BOOT ANIMATION
+   ═══════════════════════════════════════════════════════════════════ */
+async function runBoot() {
+  const log = document.getElementById('b-log');
+  for (const msg of BOOT) {
+    await sleep(170 + Math.random() * 130);
+    const d = document.createElement('div');
+    d.className = 'b-line';
+    d.textContent = msg;
+    log.appendChild(d);
+  }
+  await sleep(300);
+  document.getElementById('boot').classList.add('gone');
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MATRIX RAIN
+   ═══════════════════════════════════════════════════════════════════ */
+function initRain() {
+  const cv  = document.getElementById('rain');
+  const ctx = cv.getContext('2d');
+  const CH  = '01アイウエオカキクケコサシスセソ{}[]<>/*#$%@!?ABCDEFNX';
+  const FS  = 13;
+  let cols, drops;
+  const resize = () => {
+    cv.width = window.innerWidth; cv.height = window.innerHeight;
+    cols  = Math.floor(cv.width / FS);
+    drops = Array(cols).fill(1);
+  };
+  const frame = () => {
+    ctx.fillStyle = 'rgba(5,10,5,.05)';
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.font = `${FS}px Share Tech Mono`;
+    for (let i = 0; i < cols; i++) {
+      ctx.fillStyle = `rgba(0,255,65,${(Math.random()*.4+.1).toFixed(2)})`;
+      ctx.fillText(CH[Math.floor(Math.random()*CH.length)], i*FS, drops[i]*FS);
+      if (drops[i]*FS > cv.height && Math.random()>.975) drops[i]=0;
+      drops[i]++;
+    }
+  };
+  resize();
+  window.addEventListener('resize', resize);
+  setInterval(frame, 55);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FIREBASE
+   ═══════════════════════════════════════════════════════════════════ */
+function initFB() {
+  if (FB_CFG.apiKey === 'YOUR_API_KEY') {
+    toast('Open index.html and fill in FIREBASE_CONFIG to get started.', 'warn');
+    return;
+  }
+  try {
+    firebase.initializeApp(FB_CFG);
+    db   = firebase.firestore();
+    auth = firebase.auth();
+    auth.onAuthStateChanged(async u => {
+      S.user    = u;
+      S.isAdmin = u ? await chkAdmin(u.uid) : false;
+      renderAuth();
+      if (S.view === 'add')   renderAddView();
+      if (S.view === 'admin') S.isAdmin ? renderAdmin() : sv('list');
+    });
+    subTerms();
+  } catch(e) {
+    toast('Firebase init error — check console.', 'err');
+    console.error(e);
+  }
+}
+
+async function chkAdmin(uid) {
+  try { return (await db.collection('admins').doc(uid).get()).exists; }
+  catch { return false; }
+}
+
+function subTerms() {
+  db.collection('terms').orderBy('addedAt','desc')
+    .onSnapshot(snap => {
+      S.terms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      S.terms.forEach(t => byId.set(t.id, t));
+      filter();
+      refreshStats();
+      refreshCats();
+      if (S.view === 'admin') renderAdmin();
+    }, e => { toast('DB error: ' + e.message, 'err'); console.error(e); });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SEARCH & FILTER
+   ═══════════════════════════════════════════════════════════════════ */
+function onSrch(q) { S.search = q.toLowerCase().trim(); filter(); }
+
+function setF(cat) {
+  S.filter = cat;
+  document.querySelectorAll('.fc').forEach(b => b.classList.toggle('active', b.dataset.cat===cat));
+  filter();
+}
+
+function filter() {
+  const { terms, search, filter: f } = S;
+  S.shown = terms.filter(t => {
+    const cm = f === 'all' || (t.category||'').toLowerCase() === f.toLowerCase();
+    if (!search) return cm;
+    return cm && (
+      (t.term||'').toLowerCase().includes(search) ||
+      (t.definition||'').toLowerCase().includes(search) ||
+      (t.category||'').toLowerCase().includes(search) ||
+      (t.tags||[]).some(x => x.toLowerCase().includes(search))
+    );
+  });
+  document.getElementById('srch-m').textContent =
+    search ? `${S.shown.length} result${S.shown.length!==1?'s':''}` : '';
+  renderGrid();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RENDER: GRID
+   ═══════════════════════════════════════════════════════════════════ */
+function renderGrid() {
+  const g = document.getElementById('grid');
+  if (!S.shown.length) {
+    g.innerHTML = `<div class="empty">
+      <div class="e-art">╔══════════════════════╗\n║   NO RESULTS FOUND   ║\n╚══════════════════════╝</div>
+      <div class="e-msg">${S.search
+        ? `No terms matching &ldquo;${esc(S.search)}&rdquo;`
+        : S.terms.length ? 'No terms in this category yet.'
+        : 'The lexicon is empty — be the first contributor!'}</div>
+      ${!S.search&&!S.terms.length
+        ?'<button class="btn" onclick="sv(\'add\')"><span>[ ADD FIRST TERM ]</span></button>':''}
+    </div>`;
+    return;
+  }
+  g.innerHTML = S.shown.map((t,i) => `
+    <div class="card" onclick="openModal('${esc(t.id)}')" style="animation-delay:${Math.min(i*.04,.5)}s">
+      <div class="c-bar">
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <span class="c-cat">${esc(t.category||'OTHER')}</span>
+      </div>
+      <div class="c-body">
+        <div class="c-term">${esc(t.term||'')}</div>
+        <div class="c-def">${esc(t.definition||'')}</div>
+      </div>
+      <div class="c-foot">
+        <span>by ${esc(short(t.addedByEmail||'anon'))}</span>
+        <span>${fd(t.addedAt)}</span>
+      </div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   STATS & CATEGORIES
+   ═══════════════════════════════════════════════════════════════════ */
+function refreshStats() {
+  document.getElementById('s-t').textContent = S.terms.length;
+  document.getElementById('s-c').textContent = new Set(S.terms.map(t=>t.addedBy).filter(Boolean)).size;
+  document.getElementById('s-k').textContent = new Set(S.terms.map(t=>t.category).filter(Boolean)).size;
+}
+function refreshCats() {
+  const used = [...new Set(S.terms.map(t=>t.category).filter(Boolean))].sort();
+  document.getElementById('f-row').innerHTML =
+    `<button class="fc ${S.filter==='all'?'active':''}" data-cat="all" onclick="setF('all')">[ALL]</button>` +
+    used.map(c=>`<button class="fc ${S.filter===c?'active':''}" data-cat="${esc(c)}" onclick="setF('${esc(c)}')">[${esc(c.toUpperCase())}]</button>`).join('');
+  const opts = CATS.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('a-cat').innerHTML = opts;
+  document.getElementById('e-cat').innerHTML = opts;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TERM DETAIL MODAL
+   ═══════════════════════════════════════════════════════════════════ */
+function openModal(id) {
+  const t = byId.get(id); if (!t) return;
+  S.active = t;
+  document.getElementById('m-path').textContent = `devctionary://term/${encodeURIComponent(t.term||'')}`;
+  document.getElementById('m-name').textContent = t.term || '';
+  document.getElementById('m-meta').innerHTML =
+    `<span class="m-mcat">${esc(t.category||'OTHER')}</span>
+     <span>by ${esc(short(t.addedByEmail||'anon'))}</span>
+     <span>${fd(t.addedAt)}</span>
+     ${t.updatedAt?`<span style="color:var(--amber)">edited ${fd(t.updatedAt)}</span>`:''}`;
+  document.getElementById('m-def').textContent  = t.definition || '';
+  document.getElementById('m-tags').innerHTML   = (t.tags||[]).filter(Boolean).map(x=>`<span class="tag">${esc(x.trim())}</span>`).join('');
+  const adm = document.getElementById('m-adm');
+  if (S.isAdmin) {
+    adm.classList.remove('hidden');
+    document.getElementById('m-edit-btn').onclick = () => openEdit(t);
+    document.getElementById('m-del-btn').onclick  = () => delTerm(t.id, t.term);
+  } else adm.classList.add('hidden');
+  document.getElementById('ov-term').classList.remove('hidden');
+}
+function closeModal()  { document.getElementById('ov-term').classList.add('hidden'); S.active=null; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   EDIT MODAL (ADMIN)
+   ═══════════════════════════════════════════════════════════════════ */
+function openEdit(t) {
+  closeModal();
+  document.getElementById('e-id').value   = t.id;
+  document.getElementById('e-term').value = t.term||'';
+  document.getElementById('e-cat').value  = t.category||'Other';
+  document.getElementById('e-def').value  = t.definition||'';
+  document.getElementById('e-tags').value = (t.tags||[]).join(', ');
+  document.getElementById('ov-edit').classList.remove('hidden');
+}
+function closeEdit() { document.getElementById('ov-edit').classList.add('hidden'); }
+
+async function saveEdit() {
+  if (!S.isAdmin) return toast('Admin access required.', 'err');
+  const id  = document.getElementById('e-id').value;
+  const tv  = document.getElementById('e-term').value.trim();
+  const cat = document.getElementById('e-cat').value;
+  const def = document.getElementById('e-def').value.trim();
+  const tags= document.getElementById('e-tags').value.split(',').map(x=>x.trim()).filter(Boolean);
+  if (!tv)  return toast('Term cannot be empty.', 'err');
+  if (!def) return toast('Definition cannot be empty.', 'err');
+  try {
+    await db.collection('terms').doc(id).update({
+      term:tv, category:cat, definition:def, tags,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: S.user.uid,
+    });
+    closeEdit();
+    toast(`"${tv}" updated.`);
+  } catch(e) { toast('Update failed: '+e.message,'err'); console.error(e); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DELETE TERM (ADMIN)
+   ═══════════════════════════════════════════════════════════════════ */
+async function delTerm(id, name) {
+  if (!S.isAdmin) return toast('Admin access required.', 'err');
+  if (!confirm(`Permanently delete "${name}"?\n\nThis cannot be undone.`)) return;
+  try {
+    await db.collection('terms').doc(id).delete();
+    closeModal();
+    toast(`"${name}" removed from lexicon.`);
+  } catch(e) { toast('Delete failed: '+e.message,'err'); console.error(e); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SUBMIT NEW TERM
+   ═══════════════════════════════════════════════════════════════════ */
+async function submitTerm() {
+  if (!S.user) return toast('Login required.', 'err');
+  const tv  = document.getElementById('a-term').value.trim();
+  const cat = document.getElementById('a-cat').value;
+  const def = document.getElementById('a-def').value.trim();
+  const tags= document.getElementById('a-tags').value.split(',').map(x=>x.trim()).filter(Boolean);
+
+  if (!tv)              return toast('Term is required.', 'err');
+  if (!def)             return toast('Definition is required.', 'err');
+  if (tv.length > 100)  return toast('Term too long (max 100 chars).', 'err');
+  if (def.length < 10)  return toast('Definition is too short.', 'err');
+  if (S.terms.find(t => t.term.toLowerCase() === tv.toLowerCase()))
+    return toast(`"${tv}" already exists in the lexicon.`, 'warn');
+
+  try {
+    await db.collection('terms').add({
+      term:tv, category:cat, definition:def, tags,
+      addedBy:      S.user.uid,
+      addedByEmail: S.user.email,
+      addedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:    null,
+      updatedBy:    null,
+    });
+    ['a-term','a-def','a-tags'].forEach(x=>document.getElementById(x).value='');
+    toast(`"${tv}" added to the lexicon!`);
+    sv('list');
+  } catch(e) { toast('Submission failed: '+e.message,'err'); console.error(e); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   AUTH
+   ═══════════════════════════════════════════════════════════════════ */
+function doAuth() {
+  if (!auth) return toast('Firebase not configured yet.', 'warn');
+  if (S.user) {
+    auth.signOut().then(()=>toast('Logged out. See you next time.'))
+      .catch(e=>toast(e.message,'err'));
+  } else {
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+      .catch(e=>toast('Login failed: '+e.message,'err'));
+  }
+}
+
+function renderAuth() {
+  const chip = document.getElementById('u-chip');
+  const btn  = document.getElementById('auth-btn');
+  if (S.user) {
+    btn.querySelector('span').textContent = '[ LOGOUT ]';
+    chip.classList.remove('hidden');
+    chip.innerHTML = `${short(S.user.email)}${S.isAdmin?'<span class="adm">[ADMIN]</span>':''}`;
+    document.getElementById('sb-u').textContent = `${S.user.email}${S.isAdmin?' // ADMIN':' // authenticated'}`;
+    document.getElementById('n-admin').classList.toggle('hidden', !S.isAdmin);
+  } else {
+    btn.querySelector('span').textContent = '[ LOGIN ]';
+    chip.classList.add('hidden');
+    document.getElementById('sb-u').textContent = 'guest@devctionary';
+    document.getElementById('n-admin').classList.add('hidden');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   VIEW MANAGER
+   ═══════════════════════════════════════════════════════════════════ */
+function sv(view) {
+  S.view = view;
+  ['list','add','admin'].forEach(v => {
+    document.getElementById(`v-${v}`).classList.toggle('hidden', v!==view);
+    const n = document.getElementById(`n-${v}`);
+    if (n) n.classList.toggle('active', v===view);
+  });
+  if (view==='add')   renderAddView();
+  if (view==='admin') { if (!S.isAdmin) { sv('list'); return; } renderAdmin(); }
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderAddView() {
+  document.getElementById('gate').classList.toggle('hidden',  !!S.user);
+  document.getElementById('add-form').classList.toggle('hidden', !S.user);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ADMIN TABLE
+   ═══════════════════════════════════════════════════════════════════ */
+function renderAdmin() {
+  document.getElementById('a-tbody').innerHTML = S.terms.map(t=>`
+    <tr>
+      <td class="tbl-t">${esc(t.term)}</td>
+      <td><span class="c-cat" style="font-size:9px">${esc(t.category||'Other')}</span></td>
+      <td>${esc(short(t.addedByEmail||'unknown'))}</td>
+      <td>${fd(t.addedAt)}</td>
+      <td><div class="tbl-ac">
+        <button class="btn btn-sm btn-c" onclick="openEditById('${esc(t.id)}')"><span>EDIT</span></button>
+        <button class="btn btn-sm btn-r"  onclick="delTerm('${esc(t.id)}','${esc(t.term)}')"><span>DEL</span></button>
+      </div></td>
+    </tr>`).join('');
+}
+function openEditById(id) { const t=byId.get(id); if(t) openEdit(t); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════════════════════════════ */
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = `toast ${type==='err'?'err':type==='warn'?'warn':''}`;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3700);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   KEYBOARD SHORTCUTS
+   ═══════════════════════════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') { closeModal(); closeEdit(); }
+  if ((e.ctrlKey||e.metaKey) && e.key==='k') {
+    e.preventDefault(); sv('list');
+    setTimeout(()=>document.getElementById('srch').focus(), 50);
+  }
+});
+document.getElementById('srch').addEventListener('keydown', e => {
+  if (e.key==='Escape') { e.target.value=''; onSrch(''); }
+});
+document.getElementById('ov-term').addEventListener('click', e=>{ if(e.target===document.getElementById('ov-term')) closeModal(); });
+document.getElementById('ov-edit').addEventListener('click', e=>{ if(e.target===document.getElementById('ov-edit'))  closeEdit();  });
+document.getElementById('m-close').onclick = closeModal;
+document.getElementById('e-close').onclick  = closeEdit;
+document.getElementById('e-cancel').onclick = closeEdit;
+document.getElementById('e-save').onclick   = saveEdit;
+
+/* ═══════════════════════════════════════════════════════════════════
+   CLOCK
+   ═══════════════════════════════════════════════════════════════════ */
+function clock() {
+  const tick = ()=> document.getElementById('sb-t').textContent =
+    new Date().toISOString().replace('T',' ').substring(0,19)+' UTC';
+  tick(); setInterval(tick, 1000);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   UTILS
+   ═══════════════════════════════════════════════════════════════════ */
+const esc  = s => s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+const short= e => (!e||!e.includes('@'))?e||'anon':e.split('@')[0];
+const fd   = ts => { if(!ts) return 'just now'; try { const d=ts.toDate?ts.toDate():new Date(ts); return d.toLocaleDateString('en-US',{year:'2-digit',month:'short',day:'numeric'}); } catch{return '—';} };
+const sleep= ms => new Promise(r=>setTimeout(r,ms));
+
+/* ═══════════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════════ */
+(async function init() {
+  initRain();
+  clock();
+  const opts = CATS.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('a-cat').innerHTML = opts;
+  document.getElementById('e-cat').innerHTML = opts;
+  await Promise.all([runBoot(), sleep(100)]);
+  initFB();
+})();
+</script>
+</body>
+</html>
