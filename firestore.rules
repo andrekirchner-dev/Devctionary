@@ -1,0 +1,61 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════════
+//  DEVGLOSS — Firestore Security Rules
+// ───────────────────────────────────────────────────────────────────
+//  Model:
+//   • terms/{termId}  — public read, any-auth create, admin-only edit/delete
+//   • admins/{uid}    — auth read, NO client writes (set via Firebase Console)
+//
+//  To grant admin access:
+//    Firebase Console → Firestore → admins collection → Add document
+//    Document ID = the user's UID (find it in Authentication tab)
+//    Fields: { email: "user@example.com", grantedAt: <timestamp> }
+// ═══════════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── HELPER FUNCTIONS ────────────────────────────────────────────
+    function isAuth()  { return request.auth != null; }
+    function isAdmin() {
+      return isAuth() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // ── TERMS ────────────────────────────────────────────────────────
+    match /terms/{termId} {
+
+      // Anyone can read (public glossary)
+      allow read: if true;
+
+      // Any authenticated user can add a term
+      allow create: if isAuth()
+        && request.resource.data.keys().hasAll(['term','definition','category','addedBy','addedByEmail','addedAt'])
+        && request.resource.data.term        is string
+        && request.resource.data.term.size() > 0
+        && request.resource.data.term.size() <= 100
+        && request.resource.data.definition  is string
+        && request.resource.data.definition.size() >= 10
+        // Users can only submit as themselves
+        && request.resource.data.addedBy == request.auth.uid;
+
+      // Only admins can edit or delete terms
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── ADMINS ──────────────────────────────────────────────────────
+    match /admins/{uid} {
+      // Authenticated users can check if someone is admin (needed by the app)
+      allow read: if isAuth();
+      // No client can write to admins — use Firebase Console or Admin SDK only
+      allow write: if false;
+    }
+
+    // ── DENY ALL OTHER PATHS ────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
