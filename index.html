@@ -938,15 +938,72 @@ async function chkAdmin(uid) {
 }
 
 function subTerms() {
-  db.collection('terms').orderBy('addedAt','desc')
+  // ── Paginated loading (replaces onSnapshot) ───────────────────────
+const _PS = 48;
+let _cur = null, _done = false, _busy = false;
+
+async function _loadPage(reset) {
+  if (_busy || (!reset && _done)) return;
+  _busy = true;
+  if (reset) { _cur = null; _done = false; S.terms = []; byId.clear(); }
+  try {
+    let q = db.collection('terms').orderBy('addedAt','desc').limit(_PS);
+    if (S.filter) q = q.where('category','==',S.filter);
+    if (_cur)    q = q.startAfter(_cur);
+    const snap = await q.get();
+    snap.forEach(d => {
+      if (!byId.has(d.id)) {
+        const t = {id:d.id,...d.data()};
+        S.terms.push(t);
+        byId.set(d.id,t);
+      }
+    });
+    if (snap.docs.length) _cur = snap.docs[snap.docs.length-1];
+    if (snap.docs.length < _PS) _done = true;
+  } catch(e) { toast('DB error: '+e.message,'err'); console.error(e); }
+  filter(); refreshStats(); refreshCats();
+  if (S.view==='admin') renderAdmin();
+  _busy = false;
+  _updateSentinel();
+}
+
+function _updateSentinel() {
+  const el = document.getElementById('load-sentinel');
+  if (!el) return;
+  el.innerHTML = _done
+    ? `<div style="text-align:center;padding:20px;color:var(--tdim);font-size:9px;letter-spacing:2px">${S.terms.length.toLocaleString()} TERMS LOADED</div>`
+    : '';
+}
+
+// Listener só para termos NOVOS adicionados em tempo real
+try {
+  db.collection('terms')
+    .where('addedAt','>',firebase.firestore.Timestamp.now())
+    .orderBy('addedAt','desc')
     .onSnapshot(snap => {
-      S.terms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      S.terms.forEach(t => byId.set(t.id, t));
-      filter();
-      refreshStats();
-      refreshCats();
-      if (S.view === 'admin') renderAdmin();
-    }, e => { toast('DB error: ' + e.message, 'err'); console.error(e); });
+      let added = 0;
+      snap.docChanges().forEach(ch => {
+        if (ch.type==='added' && !byId.has(ch.doc.id)) {
+          const t = {id:ch.doc.id,...ch.doc.data()};
+          S.terms.unshift(t); byId.set(t.id,t); added++;
+        }
+      });
+      if (added>0) { filter(); refreshStats(); refreshCats(); }
+    }, e => console.warn('realtime listener:',e));
+} catch(e) {}
+
+// Carga inicial
+_loadPage(true);
+
+// Infinite scroll
+setTimeout(() => {
+  const sentinel = document.getElementById('load-sentinel');
+  if (sentinel) {
+    new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !_busy && !_done && !S.search) _loadPage(false);
+    }, {rootMargin:'400px'}).observe(sentinel);
+  }
+}, 500);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -957,7 +1014,7 @@ function onSrch(q) { S.search = q.toLowerCase().trim(); filter(); }
 function setF(cat) {
   S.filter = cat;
   document.querySelectorAll('.fc').forEach(b => b.classList.toggle('active', b.dataset.cat===cat));
-  filter();
+  _loadPage ? _loadPage(true) : filter();
 }
 
 function filter() {
