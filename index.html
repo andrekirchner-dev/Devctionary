@@ -559,6 +559,37 @@
     }
   }
 
+    /* ── COMMANDS VIEW HEADER ── */
+    .view-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:14px}
+    .view-title{font-family:var(--fd);font-size:42px;color:var(--g);text-shadow:0 0 20px rgba(0,255,65,.3);line-height:1}
+    .view-sub{font-size:12px;color:var(--tdim);margin-top:6px}
+    .pill{font-family:var(--fb);font-size:10px;padding:3px 12px;border:1px solid var(--tdim);background:transparent;color:var(--tdim);cursor:pointer;text-transform:uppercase;letter-spacing:1px;transition:all .12s}
+    .pill:hover,.pill.active{border-color:var(--g);color:var(--g);background:var(--g-sub)}
+    .s-wrap{display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:rgba(0,20,5,.4);padding:10px 14px}
+    .s-wrap:focus-within{border-color:var(--g-dim)}
+    .s-icon{color:var(--c);flex-shrink:0}
+    .s-input{flex:1;background:transparent;border:none;outline:none;color:var(--g);font-family:var(--fb);font-size:14px;caret-color:var(--g)}
+    .s-input::placeholder{color:var(--tdim)}
+    .f-label{display:block;font-size:10px;color:var(--c);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+    .f-label::before{content:'> ';color:var(--g-dim)}
+    .f-input{width:100%;background:rgba(0,20,5,.5);border:1px solid var(--border);padding:10px 14px;color:var(--g);font-family:var(--fb);font-size:13px;outline:none;transition:border-color .2s;caret-color:var(--g);border-radius:0}
+    .f-input:focus{border-color:var(--g-dim);box-shadow:0 0 16px rgba(0,255,65,.06)}
+    .f-input::placeholder{color:var(--tdim)}
+    .f-ta{min-height:100px;resize:vertical;line-height:1.65}
+    .f-select{cursor:pointer}
+    .f-select option{background:#080e08;color:var(--g)}
+    .f-hint{font-size:10px;color:var(--tdim);margin-top:4px}
+    .ac-wrap{position:relative}
+    .lib-btn{background:transparent;border:none;cursor:pointer;color:var(--tdim);padding:4px 6px;font-size:16px;transition:color .15s,transform .1s;position:absolute;top:7px;right:8px;z-index:5;line-height:1}
+    .lib-btn:hover{color:var(--g);transform:scale(1.15)}
+    .lib-btn.saved{color:var(--amber)}
+    .key-badges{display:flex;flex-wrap:wrap;gap:5px;padding:8px 12px;border:1px solid var(--border);background:rgba(0,20,5,.5);min-height:42px;cursor:text;align-items:center;transition:border-color .2s}
+    .key-badges.active{border-color:var(--g-dim);box-shadow:0 0 16px rgba(0,255,65,.06)}
+    .key-badge{display:inline-flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:11px;color:var(--g);border:1px solid var(--g-dim);background:rgba(0,255,65,.07);padding:1px 7px;min-width:24px;height:22px;letter-spacing:.5px;flex-shrink:0}
+    .key-sep{color:var(--tdim);font-size:12px;margin:0 2px;align-self:center}
+    .key-raw{flex:1;min-width:40px;background:transparent;border:none;outline:none;color:var(--g);font-family:var(--fb);font-size:13px;caret-color:var(--g);cursor:default}
+    .key-raw::placeholder{color:var(--tdim)}
+
   </style>
 </head>
 <body>
@@ -639,7 +670,9 @@
       <div class="logo-sub">Developer & VibeCoder Dictionary</div>
     </div>
     <nav class="h-nav">
-      <button class="nb active" id="n-list" onclick="sv('list')">Glossary</button>
+      <button class="nb active" id="n-list" onclick="sv('list')">Term Glossary</button>
+      <button class="nb" id="n-cmd" onclick="sv('cmd')">Cmds / Shortcuts</button>
+      <button class="nb hidden" id="n-library" onclick="sv('library')">My Library</button>
       <button class="nb" id="n-add"  onclick="sv('add')">+ Add Term</button>
       <button class="nb hidden" id="n-admin" onclick="sv('admin')">⚡ Admin</button>
     </nav>
@@ -671,6 +704,7 @@
         <div class="st"><span class="st-l">STATUS</span><span class="st-v" style="color:var(--g);font-size:13px;padding-top:5px"><span class="pdot"></span>LIVE</span></div>
       </div>
       <div class="grid" id="grid"></div>
+      <div id="load-sentinel" style="width:100%"></div>
     </div>
 
     <!-- ADD VIEW -->
@@ -792,6 +826,139 @@ APIs using standard HTTP methods: GET, POST, PUT, DELETE.</pre>
         <div class="so-grid" id="so-grid"></div>
       </div>
 
+    </div>
+
+    <!-- LIBRARY VIEW -->
+    <div id="v-library" class="hidden">
+      <p class="t-line">devctionary --library --user=$(whoami)<span class="cursor"></span></p>
+      <div class="fh">> MY LIBRARY</div>
+      <div class="fs">Your personal collection of saved terms. Click ★ on any term card to bookmark it here.</div>
+      <div id="lib-gate" class="gate hidden">
+        <div class="g-art">╔═══════════════════╗
+║   ACCESS DENIED   ║
+║   UNAUTHORIZED    ║
+╚═══════════════════╝</div>
+        <div class="g-title">> LOGIN REQUIRED</div>
+        <div class="g-msg">Login to save terms to your personal library.</div>
+        <button class="btn" onclick="doAuth()"><span>[ LOGIN WITH GOOGLE ]</span></button>
+      </div>
+      <div class="grid" id="lib-grid"></div>
+      <div id="lib-empty" class="empty hidden">
+        <div class="e-art">╔══════════════════════╗
+║  LIBRARY IS EMPTY   ║
+╚══════════════════════╝</div>
+        <div class="e-msg">No terms saved yet. Browse the glossary and click ★ on a card to save it.</div>
+        <button class="btn" onclick="sv('list')"><span>[ BROWSE GLOSSARY ]</span></button>
+      </div>
+    </div>
+
+    <!-- COMMANDS VIEW -->
+    <div id="v-cmd" class="hidden">
+      <div class="view-hdr">
+        <div>
+          <div class="view-title"><span style="opacity:.5">$</span> COMMANDS</div>
+          <div class="view-sub">Terminal commands, Git spells, keyboard shortcuts &amp; Docker recipes</div>
+        </div>
+        <button class="btn btn-c" onclick="sv('add-cmd')"><span>[ + ADD COMMAND ]</span></button>
+      </div>
+      <div class="cmd-search-row">
+        <div class="s-wrap">
+          <span class="s-icon">⌕</span>
+          <input id="cmd-search" class="s-input" type="text" placeholder="search commands..."
+                 oninput="filterCmds()">
+        </div>
+        <div class="os-filter" id="os-filter">
+          <button class="os-pill active" data-os="" onclick="setOSFilter(this,'')">ALL OS</button>
+          <button class="os-pill" data-os="macOS" onclick="setOSFilter(this,'macOS')">macOS</button>
+          <button class="os-pill" data-os="Linux" onclick="setOSFilter(this,'Linux')">Linux</button>
+          <button class="os-pill" data-os="Windows" onclick="setOSFilter(this,'Windows')">Windows</button>
+          <button class="os-pill" data-os="Cross-platform" onclick="setOSFilter(this,'Cross-platform')">Cross</button>
+        </div>
+      </div>
+      <div class="cmd-filters" id="cmd-cats">
+        <button class="pill active" data-cat="" onclick="setCmdCat(this,'')">ALL</button>
+        <button class="pill" data-cat="Shell" onclick="setCmdCat(this,'Shell')">Shell</button>
+        <button class="pill" data-cat="Git" onclick="setCmdCat(this,'Git')">Git</button>
+        <button class="pill" data-cat="Shortcuts" onclick="setCmdCat(this,'Shortcuts')">Shortcuts</button>
+        <button class="pill" data-cat="Docker" onclick="setCmdCat(this,'Docker')">Docker</button>
+        <button class="pill" data-cat="npm / yarn" onclick="setCmdCat(this,'npm / yarn')">npm / yarn</button>
+        <button class="pill" data-cat="Vim" onclick="setCmdCat(this,'Vim')">Vim</button>
+        <button class="pill" data-cat="Other" onclick="setCmdCat(this,'Other')">Other</button>
+      </div>
+      <div id="cmd-count" style="font-size:10px;color:var(--tdim);margin:10px 0 0"></div>
+      <div class="cmd-grid" id="cmd-grid"></div>
+    </div>
+
+    <!-- ADD COMMAND VIEW -->
+    <div id="v-add-cmd" class="hidden">
+      <div class="view-hdr">
+        <div>
+          <div class="view-title">+ ADD COMMAND</div>
+          <div class="view-sub">Share a command, shortcut or snippet with the community</div>
+        </div>
+        <button class="btn" onclick="sv('cmd')"><span>[ ← BACK ]</span></button>
+      </div>
+      <div id="cmd-auth-gate" class="hidden" style="text-align:center;padding:60px 20px">
+        <div style="font-family:var(--fd);font-size:32px;margin-bottom:8px;color:var(--g)">ACCESS DENIED</div>
+        <div style="font-size:12px;color:var(--tdim);margin-bottom:24px">You must be logged in to add commands.</div>
+        <button class="btn btn-c" onclick="doAuth()"><span>[ LOGIN WITH GOOGLE ]</span></button>
+      </div>
+      <div id="cmd-form-wrap">
+        <div class="cmd-form-grid">
+          <div class="cmd-full">
+            <label class="f-label">COMMAND / SHORTCUT *</label>
+            <div class="ac-wrap" id="ca-cmd-wrap">
+              <input id="ca-cmd" class="f-input" type="text" maxlength="200"
+                     placeholder="e.g.  git log --oneline --graph  or  Cmd+Shift+P">
+            </div>
+            <div class="f-hint" id="ca-cmd-hint">The exact command or key combination</div>
+          </div>
+          <div class="cmd-full">
+            <label class="f-label">DESCRIPTION *</label>
+            <textarea id="ca-desc" class="f-input f-ta" rows="3" maxlength="600"
+                      placeholder="What does this command do? Be concise and clear."></textarea>
+          </div>
+          <div class="cmd-full">
+            <label class="f-label">EXAMPLE <span style="color:var(--tdim)">(optional)</span></label>
+            <input id="ca-ex" class="f-input" type="text" maxlength="300"
+                   placeholder="e.g.  git log --oneline --graph --all --decorate">
+            <div class="f-hint">A practical usage example or variation</div>
+          </div>
+          <div>
+            <label class="f-label">CATEGORY *</label>
+            <select id="ca-cat" class="f-input f-select" onchange="onCmdCatChange()">
+              <option value="">— select —</option>
+              <option>Shell</option>
+              <option>Git</option>
+              <option>Shortcuts</option>
+              <option>Docker</option>
+              <option>npm / yarn</option>
+              <option>Vim</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="f-label">OPERATING SYSTEM</label>
+            <select id="ca-os" class="f-input f-select">
+              <option value="Cross-platform">Cross-platform</option>
+              <option value="macOS">macOS</option>
+              <option value="Linux">Linux</option>
+              <option value="Windows">Windows</option>
+            </select>
+          </div>
+          <div class="cmd-full">
+            <label class="f-label">TAGS <span style="color:var(--tdim)">(comma separated)</span></label>
+            <div class="ac-wrap">
+              <input id="ca-tags" class="f-input" type="text"
+                     placeholder="e.g. git, history, log, graph">
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-c" onclick="submitCmd()"><span id="ca-btn">[ SUBMIT COMMAND ]</span></button>
+          <button class="btn" onclick="clearCmdForm()"><span>[ CLEAR ]</span></button>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -922,8 +1089,10 @@ function initFB() {
       S.user    = u;
       S.isAdmin = u ? await chkAdmin(u.uid) : false;
       renderAuth();
-      if (S.view === 'add')   renderAddView();
-      if (S.view === 'admin') S.isAdmin ? renderAdmin() : sv('list');
+      initLibrary();
+      if (S.view === 'add')     renderAddView();
+      if (S.view === 'admin')   S.isAdmin ? renderAdmin() : sv('list');
+      if (S.view === 'library') renderLibrary();
     });
     subTerms();
   } catch(e) {
@@ -946,9 +1115,12 @@ function subTerms() {
     pg.busy = true;
     _showLoadBtn(false);
 
-    var q = db.collection('terms').orderBy('addedAt','desc').limit(48);
-    if (window._pgFilter && window._pgFilter !== 'all')
-      q = q.where('category','==', window._pgFilter);
+    var q;
+    if (window._pgFilter && window._pgFilter !== 'all') {
+      q = db.collection('terms').where('category','==', window._pgFilter).limit(48);
+    } else {
+      q = db.collection('terms').orderBy('addedAt','desc').limit(48);
+    }
     if (pg.cur) q = q.startAfter(pg.cur);
 
     q.get().then(function(snap) {
@@ -989,6 +1161,33 @@ function subTerms() {
   window._pgFilter = S.filter;
   S.terms = []; byId.clear();
   window.loadMoreTerms();
+
+  // Total real de termos no Firestore (independente da paginação)
+  (function fetchTotal() {
+    // Tenta count() aggregation (Firebase SDK v9.6+)
+    try {
+      var ref = db.collection('terms');
+      if (ref.count) {
+        ref.count().get().then(function(s) {
+          window._totalTerms = s.data().count;
+          var el = document.getElementById('s-t');
+          if (el) el.textContent = window._totalTerms.toLocaleString();
+        }).catch(function() { fetchFromConfig(); });
+        return;
+      }
+    } catch(e) {}
+    fetchFromConfig();
+  })();
+
+  function fetchFromConfig() {
+    db.collection('config').doc('stats').get().then(function(snap) {
+      if (snap.exists && snap.data().totalTerms) {
+        window._totalTerms = snap.data().totalTerms;
+        var el = document.getElementById('s-t');
+        if (el) el.textContent = window._totalTerms.toLocaleString();
+      }
+    }).catch(function() {});
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -999,7 +1198,10 @@ function onSrch(q) { S.search = q.toLowerCase().trim(); filter(); }
 function setF(cat) {
   S.filter = cat;
   document.querySelectorAll('.fc').forEach(b => b.classList.toggle('active', b.dataset.cat===cat));
-  _loadPage ? _loadPage(true) : filter();
+  S.terms = []; byId.clear();
+  window._pg = { cur: null, done: false, busy: false };
+  window._pgFilter = cat;
+  window.loadMoreTerms();
 }
 
 function filter() {
@@ -1037,7 +1239,10 @@ function renderGrid() {
     return;
   }
   g.innerHTML = S.shown.map((t,i) => `
-    <div class="card" onclick="openModal('${esc(t.id)}')" style="animation-delay:${Math.min(i*.04,.5)}s">
+    <div class="card" onclick="openModal('${esc(t.id)}')" style="animation-delay:${Math.min(i*.04,.5)}s;position:relative">
+      <button class="lib-btn ${S_lib.has(t.id)?'saved':''}" data-id="${esc(t.id)}"
+        onclick="toggleLib('${esc(t.id)}',event)"
+        title="${S_lib.has(t.id)?'Remove from library':'Save to library'}">${S_lib.has(t.id)?'★':'☆'}</button>
       <div class="c-bar">
         <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
         <span class="c-cat">${esc(t.category||'OTHER')}</span>
@@ -1057,15 +1262,14 @@ function renderGrid() {
    STATS & CATEGORIES
    ═══════════════════════════════════════════════════════════════════ */
 function refreshStats() {
-  document.getElementById('s-t').textContent = S.terms.length;
+  document.getElementById('s-t').textContent = (window._totalTerms || S.terms.length).toLocaleString();
   document.getElementById('s-c').textContent = new Set(S.terms.map(t=>t.addedBy).filter(Boolean)).size;
-  document.getElementById('s-k').textContent = new Set(S.terms.map(t=>t.category).filter(Boolean)).size;
+  document.getElementById('s-k').textContent = CATS.length;
 }
 function refreshCats() {
-  const used = [...new Set(S.terms.map(t=>t.category).filter(Boolean))].sort();
   document.getElementById('f-row').innerHTML =
     `<button class="fc ${S.filter==='all'?'active':''}" data-cat="all" onclick="setF('all')">[ALL]</button>` +
-    used.map(c=>`<button class="fc ${S.filter===c?'active':''}" data-cat="${esc(c)}" onclick="setF('${esc(c)}')">[${esc(c.toUpperCase())}]</button>`).join('');
+    CATS.map(c=>`<button class="fc ${S.filter===c?'active':''}" data-cat="${esc(c)}" onclick="setF('${esc(c)}')">[${esc(c.toUpperCase())}]</button>`).join('');
   const opts = CATS.map(c=>`<option value="${c}">${c}</option>`).join('');
   document.getElementById('a-cat').innerHTML = opts;
   document.getElementById('e-cat').innerHTML = opts;
@@ -1198,11 +1402,14 @@ function renderAuth() {
     chip.innerHTML = `${short(S.user.email)}${S.isAdmin?'<span class="adm">[ADMIN]</span>':''}`;
     document.getElementById('sb-u').textContent = `${S.user.email}${S.isAdmin?' // ADMIN':' // authenticated'}`;
     document.getElementById('n-admin').classList.toggle('hidden', !S.isAdmin);
+    document.getElementById('n-library').classList.remove('hidden');
   } else {
     btn.querySelector('span').textContent = '[ LOGIN ]';
     chip.classList.add('hidden');
     document.getElementById('sb-u').textContent = 'guest@devctionary';
     document.getElementById('n-admin').classList.add('hidden');
+    document.getElementById('n-library').classList.add('hidden');
+    if (S.view === 'library') sv('list');
   }
 }
 
@@ -1211,13 +1418,17 @@ function renderAuth() {
    ═══════════════════════════════════════════════════════════════════ */
 function sv(view) {
   S.view = view;
-  ['list','add','admin'].forEach(v => {
-    document.getElementById(`v-${v}`).classList.toggle('hidden', v!==view);
+  ['list','add','admin','cmd','add-cmd','library'].forEach(v => {
+    const el = document.getElementById(`v-${v}`);
+    if (el) el.classList.toggle('hidden', v!==view);
     const n = document.getElementById(`n-${v}`);
     if (n) n.classList.toggle('active', v===view);
   });
-  if (view==='add')   renderAddView();
-  if (view==='admin') { if (!S.isAdmin) { sv('list'); return; } renderAdmin(); }
+  if (view==='add')     renderAddView();
+  if (view==='admin')   { if (!S.isAdmin) { sv('list'); return; } renderAdmin(); }
+  if (view==='cmd')     { if (!window._cmdsInited) { initCmds(); window._cmdsInited = true; } }
+  if (view==='add-cmd') updateCmdAuthGate();
+  if (view==='library') renderLibrary();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -1445,6 +1656,98 @@ function soClick(tag) {
 
 
 /* ═══════════════════════════════════════════════════════════════════
+   📚 PERSONAL LIBRARY
+   ═══════════════════════════════════════════════════════════════════ */
+const S_lib = new Set();
+let _libUnsub = null;
+
+function initLibrary() {
+  if (_libUnsub) { _libUnsub(); _libUnsub = null; }
+  S_lib.clear();
+  if (!S.user) { renderLibrary(); return; }
+  _libUnsub = db.collection('users').doc(S.user.uid)
+    .collection('library').onSnapshot(snap => {
+      S_lib.clear();
+      snap.forEach(d => S_lib.add(d.id));
+      renderLibBtns();
+      if (S.view === 'library') renderLibGrid();
+    }, e => console.error('Library listener:', e));
+}
+
+async function toggleLib(termId, e) {
+  e.stopPropagation();
+  if (!S.user) return toast('Login required to save terms.', 'warn');
+  const ref = db.collection('users').doc(S.user.uid).collection('library').doc(termId);
+  try {
+    if (S_lib.has(termId)) {
+      await ref.delete();
+      toast('Removed from library.');
+    } else {
+      await ref.set({ savedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      toast('Saved to library!');
+    }
+  } catch(err) { toast('Error: ' + err.message, 'err'); }
+}
+
+function renderLibBtns() {
+  document.querySelectorAll('.lib-btn').forEach(btn => {
+    const id = btn.dataset.id;
+    const saved = S_lib.has(id);
+    btn.classList.toggle('saved', saved);
+    btn.title = saved ? 'Remove from library' : 'Save to library';
+    btn.textContent = saved ? '★' : '☆';
+  });
+}
+
+function renderLibGrid() {
+  const libEl  = document.getElementById('lib-grid');
+  const empty  = document.getElementById('lib-empty');
+  const gate   = document.getElementById('lib-gate');
+  if (!libEl) return;
+  if (!S.user) {
+    gate.classList.remove('hidden');
+    libEl.innerHTML = '';
+    if (empty) empty.classList.add('hidden');
+    return;
+  }
+  gate.classList.add('hidden');
+  const saved = [...S_lib].map(id => byId.get(id)).filter(Boolean);
+  if (!saved.length) {
+    libEl.innerHTML = '';
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  libEl.innerHTML = saved.map((t, i) => `
+    <div class="card" onclick="openModal('${esc(t.id)}')" style="animation-delay:${Math.min(i*.04,.5)}s;position:relative">
+      <button class="lib-btn saved" data-id="${esc(t.id)}"
+        onclick="toggleLib('${esc(t.id)}',event)" title="Remove from library">★</button>
+      <div class="c-bar">
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <span class="c-cat">${esc(t.category||'OTHER')}</span>
+      </div>
+      <div class="c-body">
+        <div class="c-term">${esc(t.term||'')}</div>
+        <div class="c-def">${esc(t.definition||'')}</div>
+      </div>
+      <div class="c-foot">
+        <span>by ${esc(short(t.addedByEmail||'anon'))}</span>
+        <span>${fd(t.addedAt)}</span>
+      </div>
+    </div>`).join('');
+}
+
+function renderLibrary() {
+  if (!S.user) {
+    document.getElementById('lib-gate').classList.remove('hidden');
+    document.getElementById('lib-grid').innerHTML = '';
+    document.getElementById('lib-empty').classList.add('hidden');
+  } else {
+    renderLibGrid();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    ⌨️  COMMANDS & SHORTCUTS
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -1570,9 +1873,9 @@ function updateCmdAuthGate() {
   else         { gate.classList.remove('hidden'); form.classList.add('hidden'); }
 }
 
-// ── Submit new command ────────────────────────────────────────────────
+// ── Submit / Update command (unified) ────────────────────────────────
 async function submitCmd() {
-  if (!S.user) { sv('v-add-cmd'); return toast('Login required.', 'err'); }
+  if (!S.user) return toast('Login required.', 'err');
   const command  = document.getElementById('ca-cmd')?.value.trim();
   const desc     = document.getElementById('ca-desc')?.value.trim();
   const example  = document.getElementById('ca-ex')?.value.trim() || '';
@@ -1581,38 +1884,56 @@ async function submitCmd() {
   const rawTags  = document.getElementById('ca-tags')?.value || '';
   const tags     = rawTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
 
-  if (!command)           return toast('Command / shortcut is required.', 'warn');
+  if (!command)                  return toast('Command / shortcut is required.', 'warn');
   if (!desc || desc.length < 10) return toast('Description must be at least 10 chars.', 'warn');
-  if (!category)          return toast('Please select a category.', 'warn');
+  if (!category)                 return toast('Please select a category.', 'warn');
+
+  const editing = !!_editCmdId;
+  if (editing && !S.isAdmin)     return toast('Admin required to edit.', 'err');
 
   const btn = document.getElementById('ca-btn');
-  if (btn) btn.textContent = '[ SUBMITTING... ]';
+  if (btn) btn.textContent = editing ? '[ UPDATING... ]' : '[ SUBMITTING... ]';
 
   try {
-    await db.collection('commands').add({
-      command, description: desc, example, category, os, tags,
-      addedBy: S.user.uid, addedByEmail: S.user.email,
-      addedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      updatedAt: null, updatedBy: null,
-    });
-    toast(`Command "${command}" added!`);
+    if (editing) {
+      await db.collection('commands').doc(_editCmdId).update({
+        command, description: desc, example, category, os, tags,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy: S.user.email,
+      });
+      toast('Command updated.');
+      _editCmdId = null;
+    } else {
+      await db.collection('commands').add({
+        command, description: desc, example, category, os, tags,
+        addedBy: S.user.uid, addedByEmail: S.user.email,
+        addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: null, updatedBy: null,
+      });
+      toast(`Command "${command}" added!`);
+    }
     clearCmdForm();
-    sv('v-cmd');
+    sv('cmd');
   } catch (e) {
-    toast('Failed: ' + e.message, 'err');
+    toast((editing ? 'Update' : 'Submit') + ' failed: ' + e.message, 'err');
     console.error(e);
   } finally {
-    if (btn) btn.textContent = '[ SUBMIT COMMAND ]';
+    if (btn) btn.textContent = editing ? '[ UPDATE COMMAND ]' : '[ SUBMIT COMMAND ]';
   }
 }
 
 function clearCmdForm() {
-  ['ca-cmd','ca-desc','ca-ex','ca-tags'].forEach(id => {
+  ['ca-desc','ca-ex','ca-tags'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  const cmdEl = document.getElementById('ca-cmd');
+  if (cmdEl) cmdEl.value = '';
+  _keyCombos = [];
+  const disp = document.getElementById('key-display');
+  if (disp) disp.innerHTML = '';
   const cat = document.getElementById('ca-cat');
-  if (cat) cat.value = '';
+  if (cat) { cat.value = ''; onCmdCatChange(); }
   const os = document.getElementById('ca-os');
   if (os) os.value = 'Cross-platform';
 }
@@ -1634,53 +1955,87 @@ function openEditCmd(id) {
   const c = _cmdById.get(id);
   if (!c) return;
   _editCmdId = id;
-  document.getElementById('ca-cmd').value  = c.command || '';
+  sv('add-cmd');
+  const catEl = document.getElementById('ca-cat');
+  if (catEl) { catEl.value = c.category || ''; onCmdCatChange(); }
+  const cmdEl = document.getElementById('ca-cmd');
+  if (cmdEl) cmdEl.value = c.command || '';
   document.getElementById('ca-desc').value = c.description || '';
   document.getElementById('ca-ex').value   = c.example || '';
-  document.getElementById('ca-cat').value  = c.category || '';
   document.getElementById('ca-os').value   = c.os || 'Cross-platform';
   document.getElementById('ca-tags').value = (c.tags||[]).join(', ');
   const btn = document.getElementById('ca-btn');
   if (btn) btn.textContent = '[ UPDATE COMMAND ]';
-  sv('v-add-cmd');
 }
 
-// Patch submitCmd to handle edits
-const _origSubmitCmd = submitCmd;
-async function submitCmd() {
-  if (_editCmdId) {
-    // Update mode
-    if (!S.isAdmin) return toast('Admin required.', 'err');
-    const command  = document.getElementById('ca-cmd')?.value.trim();
-    const desc     = document.getElementById('ca-desc')?.value.trim();
-    const example  = document.getElementById('ca-ex')?.value.trim() || '';
-    const category = document.getElementById('ca-cat')?.value;
-    const os       = document.getElementById('ca-os')?.value || 'Cross-platform';
-    const rawTags  = document.getElementById('ca-tags')?.value || '';
-    const tags     = rawTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-    if (!command || !desc || desc.length < 10 || !category)
-      return toast('Fill all required fields.', 'warn');
-    const btn = document.getElementById('ca-btn');
-    if (btn) btn.textContent = '[ UPDATING... ]';
-    try {
-      await db.collection('commands').doc(_editCmdId).update({
-        command, description: desc, example, category, os, tags,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedBy: S.user.email,
-      });
-      toast(`Command updated.`);
-      _editCmdId = null;
-      clearCmdForm();
-      if (btn) btn.textContent = '[ SUBMIT COMMAND ]';
-      sv('v-cmd');
-    } catch (e) {
-      toast('Update failed: ' + e.message, 'err');
-      if (btn) btn.textContent = '[ UPDATE COMMAND ]';
-    }
-    return;
+/* ═══════════════════════════════════════════════════════════════════
+   ⌨️  KEYBOARD INTERCEPT (Shortcuts category)
+   ═══════════════════════════════════════════════════════════════════ */
+const KEY_MAP = {
+  Meta:'⌘', Control:'⌃', Alt:'⌥', Shift:'⇧',
+  Escape:'Esc', Enter:'↩', Backspace:'⌫', Delete:'⌦', Tab:'Tab',
+  ArrowUp:'↑', ArrowDown:'↓', ArrowLeft:'←', ArrowRight:'→',
+  ' ':'Space', PageUp:'PgUp', PageDown:'PgDn', Home:'Home', End:'End',
+  F1:'F1',F2:'F2',F3:'F3',F4:'F4',F5:'F5',F6:'F6',
+  F7:'F7',F8:'F8',F9:'F9',F10:'F10',F11:'F11',F12:'F12',
+};
+let _keyCombos = [];
+
+function onCmdCatChange() {
+  const cat  = document.getElementById('ca-cat')?.value;
+  const wrap = document.getElementById('ca-cmd-wrap');
+  const hint = document.getElementById('ca-cmd-hint');
+  if (!wrap) return;
+  if (cat === 'Shortcuts') {
+    _keyCombos = [];
+    wrap.innerHTML = `
+      <div class="key-badges active" id="key-badges"
+           onclick="document.getElementById('key-hidden').focus()">
+        <span id="key-display"></span>
+        <input id="key-hidden" class="key-raw" placeholder="Press keys…" readonly
+               onfocus="this.parentElement.classList.add('active')"
+               onblur="this.parentElement.classList.remove('active')">
+      </div>
+      <input type="hidden" id="ca-cmd" value="">`;
+    if (hint) hint.textContent = 'Press your key combo — badges appear automatically. Backspace = remove last, Esc = clear all.';
+    document.getElementById('key-hidden').addEventListener('keydown', onKeyBadge);
+  } else {
+    wrap.innerHTML = `<input id="ca-cmd" class="f-input" type="text" maxlength="200"
+      placeholder="e.g.  git log --oneline --graph  or  Cmd+Shift+P">`;
+    if (hint) hint.textContent = 'The exact command or key combination';
   }
-  // Create mode — call original logic
-  await _origSubmitCmd();
+}
+
+function onKeyBadge(e) {
+  e.preventDefault();
+  if (e.key === 'Backspace' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+    _keyCombos.pop(); _renderKeyBadges(); return;
+  }
+  if (e.key === 'Escape' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+    _keyCombos = []; _renderKeyBadges(); return;
+  }
+  if (['Meta','Control','Alt','Shift'].includes(e.key)) return;
+  const mods = [];
+  if (e.metaKey)  mods.push('⌘');
+  if (e.ctrlKey)  mods.push('⌃');
+  if (e.altKey)   mods.push('⌥');
+  if (e.shiftKey) mods.push('⇧');
+  const k = KEY_MAP[e.key] || (e.key.length === 1 ? e.key.toUpperCase() : e.key);
+  mods.push(k);
+  _keyCombos.push(mods);
+  _renderKeyBadges();
+}
+
+function _renderKeyBadges() {
+  const disp = document.getElementById('key-display');
+  if (!disp) return;
+  disp.innerHTML = _keyCombos.map((keys, i) =>
+    keys.map(k => `<span class="key-badge">${esc(k)}</span>`).join(`<span class="key-sep">+</span>`) +
+    (i < _keyCombos.length - 1 ? `<span class="key-sep" style="margin:0 8px;font-size:10px;color:var(--c)">then</span>` : '')
+  ).join('');
+  const raw = _keyCombos.map(ks => ks.join('+')).join(' then ');
+  const h = document.getElementById('ca-cmd');
+  if (h) h.value = raw;
 }
 
 (async function init() {
@@ -1694,137 +2049,5 @@ async function submitCmd() {
 })();
 </script>
 
-  <!-- ╔══════════════════════════════════════════╗ -->
-  <!-- ║           V-CMD: COMMANDS TAB            ║ -->
-  <!-- ╚══════════════════════════════════════════╝ -->
-  <main id="v-cmd" class="hidden">
-    <div class="view-hdr">
-      <div>
-        <div class="view-title" style="color:var(--g)">
-          <span style="opacity:.5">$</span> COMMANDS
-        </div>
-        <div class="view-sub">Terminal commands, Git spells, keyboard shortcuts &amp; Docker recipes</div>
-      </div>
-      <button class="btn btn-c" onclick="sv('v-add-cmd')"><span>[ + ADD COMMAND ]</span></button>
-    </div>
-
-    <!-- Search + OS filter -->
-    <div class="cmd-search-row">
-      <div class="s-wrap">
-        <span class="s-icon">⌕</span>
-        <input id="cmd-search" class="s-input" type="text" placeholder="search commands..."
-               oninput="filterCmds()">
-      </div>
-      <div class="os-filter" id="os-filter">
-        <button class="os-pill active" data-os="" onclick="setOSFilter(this,'')">ALL OS</button>
-        <button class="os-pill" data-os="macOS" onclick="setOSFilter(this,'macOS')">macOS</button>
-        <button class="os-pill" data-os="Linux" onclick="setOSFilter(this,'Linux')">Linux</button>
-        <button class="os-pill" data-os="Windows" onclick="setOSFilter(this,'Windows')">Windows</button>
-        <button class="os-pill" data-os="Cross-platform" onclick="setOSFilter(this,'Cross-platform')">Cross</button>
-      </div>
-    </div>
-
-    <!-- Category pills -->
-    <div class="cmd-filters" id="cmd-cats">
-      <button class="pill active" data-cat="" onclick="setCmdCat(this,'')">ALL</button>
-      <button class="pill" data-cat="Shell" onclick="setCmdCat(this,'Shell')">Shell</button>
-      <button class="pill" data-cat="Git" onclick="setCmdCat(this,'Git')">Git</button>
-      <button class="pill" data-cat="Shortcuts" onclick="setCmdCat(this,'Shortcuts')">Shortcuts</button>
-      <button class="pill" data-cat="Docker" onclick="setCmdCat(this,'Docker')">Docker</button>
-      <button class="pill" data-cat="npm / yarn" onclick="setCmdCat(this,'npm / yarn')">npm / yarn</button>
-      <button class="pill" data-cat="Vim" onclick="setCmdCat(this,'Vim')">Vim</button>
-      <button class="pill" data-cat="Other" onclick="setCmdCat(this,'Other')">Other</button>
-    </div>
-
-    <div id="cmd-count" style="font-size:10px;color:var(--tdim);margin:10px 0 0"></div>
-    <div class="cmd-grid" id="cmd-grid"></div>
-  </main>
-
-  <!-- ╔══════════════════════════════════════════╗ -->
-  <!-- ║         V-ADD-CMD: ADD COMMAND           ║ -->
-  <!-- ╚══════════════════════════════════════════╝ -->
-  <main id="v-add-cmd" class="hidden">
-    <div class="view-hdr">
-      <div>
-        <div class="view-title">+ ADD COMMAND</div>
-        <div class="view-sub">Share a command, shortcut or snippet with the community</div>
-      </div>
-      <button class="btn" onclick="sv('v-cmd')"><span>[ ← BACK ]</span></button>
-    </div>
-
-    <!-- Auth gate -->
-    <div id="cmd-auth-gate" class="hidden" style="text-align:center;padding:60px 20px">
-      <div style="font-family:var(--fd);font-size:32px;margin-bottom:8px;color:var(--g)">ACCESS DENIED</div>
-      <div style="font-size:12px;color:var(--tdim);margin-bottom:24px">You must be logged in to add commands.</div>
-      <button class="btn btn-c" onclick="login()"><span>[ LOGIN WITH GOOGLE ]</span></button>
-    </div>
-
-    <!-- Form -->
-    <div id="cmd-form-wrap">
-      <div class="cmd-form-grid">
-        <div class="cmd-full">
-          <label class="f-label">COMMAND / SHORTCUT *</label>
-          <div class="ac-wrap">
-            <input id="ca-cmd" class="f-input" type="text" maxlength="200"
-                   placeholder="e.g.  git log --oneline --graph  or  Cmd+Shift+P">
-          </div>
-          <div class="f-hint">The exact command or key combination</div>
-        </div>
-
-        <div class="cmd-full">
-          <label class="f-label">DESCRIPTION *</label>
-          <textarea id="ca-desc" class="f-input f-ta" rows="3" maxlength="600"
-                    placeholder="What does this command do? Be concise and clear."></textarea>
-        </div>
-
-        <div class="cmd-full">
-          <label class="f-label">EXAMPLE <span style="color:var(--tdim)">(optional)</span></label>
-          <input id="ca-ex" class="f-input" type="text" maxlength="300"
-                 placeholder="e.g.  git log --oneline --graph --all --decorate">
-          <div class="f-hint">A practical usage example or variation</div>
-        </div>
-
-        <div>
-          <label class="f-label">CATEGORY *</label>
-          <select id="ca-cat" class="f-input f-select">
-            <option value="">— select —</option>
-            <option>Shell</option>
-            <option>Git</option>
-            <option>Shortcuts</option>
-            <option>Docker</option>
-            <option>npm / yarn</option>
-            <option>Vim</option>
-            <option>Other</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="f-label">OPERATING SYSTEM</label>
-          <select id="ca-os" class="f-input f-select">
-            <option value="Cross-platform">Cross-platform</option>
-            <option value="macOS">macOS</option>
-            <option value="Linux">Linux</option>
-            <option value="Windows">Windows</option>
-          </select>
-        </div>
-
-        <div class="cmd-full">
-          <label class="f-label">TAGS <span style="color:var(--tdim)">(comma separated)</span></label>
-          <div class="ac-wrap">
-            <input id="ca-tags" class="f-input" type="text"
-                   placeholder="e.g. git, history, log, graph">
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-c" onclick="submitCmd()"><span id="ca-btn">[ SUBMIT COMMAND ]</span></button>
-        <button class="btn" onclick="clearCmdForm()"><span>[ CLEAR ]</span></button>
-      </div>
-    </div>
-  </main>
-
 </body>
 </html>
-
-<div id="load-sentinel" style="width:100%;grid-column:1/-1"></div>
